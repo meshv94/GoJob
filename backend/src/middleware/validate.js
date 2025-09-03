@@ -55,7 +55,9 @@ export const validateUser = {
 
 
 export const validateEmail = {
-  // Add email validation methods here when needed
+  create: validate(emailSchemas.createEmail, 'body'),
+  update: validate(emailSchemas.updateEmail, 'body'),
+  schedule: validate(emailSchemas.scheduleEmail, 'body')
 };
 
 

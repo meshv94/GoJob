@@ -87,7 +87,105 @@ export const userSchemas = {
   // Add user-related schemas here when needed
 };
 
-// Email validation schemas (for future use)
+// Email validation schemas
 export const emailSchemas = {
-  // Add email-related schemas here when needed
+  // Create email schema
+  createEmail: Joi.object({
+    from: Joi.string().email().required().messages({
+      'string.email': 'Invalid sender email format',
+      'any.required': 'Sender email is required'
+    }),
+    to: Joi.array().items(
+      Joi.object({
+        email: Joi.string().email().required().messages({
+          'string.email': 'Invalid recipient email format',
+          'any.required': 'Recipient email is required'
+        }),
+        name: Joi.string().optional(),
+        groupId: Joi.string().optional()
+      })
+    ).min(1).required().messages({
+      'array.min': 'At least one recipient is required',
+      'any.required': 'Recipients are required'
+    }),
+    cc: Joi.array().items(Joi.string().email()).optional().messages({
+      'string.email': 'Invalid CC email format'
+    }),
+    bcc: Joi.array().items(Joi.string().email()).optional().messages({
+      'string.email': 'Invalid BCC email format'
+    }),
+    subject: Joi.string().required().min(1).max(200).messages({
+      'string.empty': 'Email subject cannot be empty',
+      'string.min': 'Email subject must be at least 1 character long',
+      'string.max': 'Email subject cannot exceed 200 characters',
+      'any.required': 'Email subject is required'
+    }),
+    content: Joi.string().required().min(1).messages({
+      'string.empty': 'Email content cannot be empty',
+      'string.min': 'Email content must be at least 1 character long',
+      'any.required': 'Email content is required'
+    }),
+    template: Joi.string().optional(),
+    attachments: Joi.array().items(
+      Joi.object({
+        filename: Joi.string().required(),
+        path: Joi.string().required(),
+        mimetype: Joi.string().optional(),
+        size: Joi.number().integer().min(0).optional()
+      })
+    ).optional(),
+    scheduledAt: Joi.date().iso().optional()
+  }),
+
+  // Update email schema (all fields optional)
+  updateEmail: Joi.object({
+    from: Joi.string().email().optional().messages({
+      'string.email': 'Invalid sender email format'
+    }),
+    to: Joi.array().items(
+      Joi.object({
+        email: Joi.string().email().required().messages({
+          'string.email': 'Invalid recipient email format',
+          'any.required': 'Recipient email is required'
+        }),
+        name: Joi.string().optional(),
+        groupId: Joi.string().optional()
+      })
+    ).min(1).optional().messages({
+      'array.min': 'At least one recipient is required'
+    }),
+    cc: Joi.array().items(Joi.string().email()).optional().messages({
+      'string.email': 'Invalid CC email format'
+    }),
+    bcc: Joi.array().items(Joi.string().email()).optional().messages({
+      'string.email': 'Invalid BCC email format'
+    }),
+    subject: Joi.string().min(1).max(200).optional().messages({
+      'string.empty': 'Email subject cannot be empty',
+      'string.min': 'Email subject must be at least 1 character long',
+      'string.max': 'Email subject cannot exceed 200 characters'
+    }),
+    content: Joi.string().min(1).optional().messages({
+      'string.empty': 'Email content cannot be empty',
+      'string.min': 'Email content must be at least 1 character long'
+    }),
+    template: Joi.string().optional(),
+    attachments: Joi.array().items(
+      Joi.object({
+        filename: Joi.string().required(),
+        path: Joi.string().required(),
+        mimetype: Joi.string().optional(),
+        size: Joi.number().integer().min(0).optional()
+      })
+    ).optional(),
+    scheduledAt: Joi.date().iso().optional()
+  }),
+
+  // Schedule email schema
+  scheduleEmail: Joi.object({
+    scheduledAt: Joi.date().iso().required().messages({
+      'date.base': 'Invalid date format',
+      'any.required': 'Scheduled date is required'
+    })
+  })
 };

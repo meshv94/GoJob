@@ -2,7 +2,9 @@ import express from 'express';
 import Email from '../models/Email.js';
 import Group from '../models/Group.js';
 import { auth } from '../middleware/auth.js';
+import { validateEmail } from '../middleware/validate.js';
 import emailService from '../utils/emailService.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -36,7 +38,7 @@ router.get('/', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Get emails error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
@@ -49,30 +51,26 @@ router.get('/:id', auth, async (req, res) => {
     }).populate('to.groupId', 'name');
     
     if (!email) {
-      return res.status(404).json({ message: 'Email not found' });
+      return res.status(404).json({ success: false, message: 'Email not found' });
     }
     
     res.json({ email });
   } catch (error) {
     console.error('Get email error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
 // Create new email (draft)
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, validateEmail.create, async (req, res) => {
   try {
+    // Validation is now handled by middleware
     const { from, to, cc, bcc, subject, content, template, attachments, scheduledAt } = req.body;
-    
-    // Validate required fields
-    if (!from || !to || !subject || !content) {
-      return res.status(400).json({ message: 'From, to, subject, and content are required' });
-    }
     
     // Check if user has quota
     const user = await User.findById(req.user._id);
     if (user.emailQuota.used >= user.emailQuota.monthly) {
-      return res.status(403).json({ message: 'Monthly email quota exceeded' });
+      return res.status(403).json({ success: false, message: 'Monthly email quota exceeded' });
     }
     
     // Determine status
@@ -98,12 +96,13 @@ router.post('/', auth, async (req, res) => {
     await email.save();
     
     res.status(201).json({ 
+      success: true,
       message: 'Email created successfully',
       email
     });
   } catch (error) {
     console.error('Create email error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
@@ -117,14 +116,14 @@ router.post('/:id/send', auth, async (req, res) => {
     });
     
     if (!email) {
-      return res.status(404).json({ message: 'Email not found or cannot be sent' });
+      return res.status(404).json({ success: false, message: 'Email not found or cannot be sent' });
     }
     
     // Check quota
     const user = await User.findById(req.user._id);
     const recipientCount = email.to.length;
     if (user.emailQuota.used + recipientCount > user.emailQuota.monthly) {
-      return res.status(403).json({ message: 'Sending this email would exceed your monthly quota' });
+      return res.status(403).json({ success: false, message: 'Sending this email would exceed your monthly quota' });
     }
     
     // Update status
@@ -163,18 +162,19 @@ router.post('/:id/send', auth, async (req, res) => {
     await email.save();
     
     res.json({ 
+      success: true,
       message: 'Email sent successfully',
       results,
       email
     });
   } catch (error) {
     console.error('Send email error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
 // Update email (draft)
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, validateEmail.update, async (req, res) => {
   try {
     const { from, to, cc, bcc, subject, content, template, attachments, scheduledAt } = req.body;
     
@@ -185,7 +185,7 @@ router.put('/:id', auth, async (req, res) => {
     });
     
     if (!email) {
-      return res.status(404).json({ message: 'Email not found or cannot be updated' });
+      return res.status(404).json({ success: false, message: 'Email not found or cannot be updated' });
     }
     
     // Update fields
@@ -205,12 +205,13 @@ router.put('/:id', auth, async (req, res) => {
     await email.save();
     
     res.json({ 
+      success: true,
       message: 'Email updated successfully',
       email
     });
   } catch (error) {
     console.error('Update email error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
@@ -224,26 +225,23 @@ router.delete('/:id', auth, async (req, res) => {
     });
     
     if (!email) {
-      return res.status(404).json({ message: 'Email not found or cannot be deleted' });
+      return res.status(404).json({ success: false, message: 'Email not found or cannot be deleted' });
     }
     
     await email.remove();
     
-    res.json({ message: 'Email deleted successfully' });
+    res.json({ success: true, message: 'Email deleted successfully' });
   } catch (error) {
     console.error('Delete email error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
 // Schedule email
-router.post('/:id/schedule', auth, async (req, res) => {
+router.post('/:id/schedule', auth, validateEmail.schedule, async (req, res) => {
   try {
+    // Validation is now handled by middleware
     const { scheduledAt } = req.body;
-    
-    if (!scheduledAt) {
-      return res.status(400).json({ message: 'Scheduled date is required' });
-    }
     
     const email = await Email.findOne({ 
       _id: req.params.id, 
@@ -252,7 +250,7 @@ router.post('/:id/schedule', auth, async (req, res) => {
     });
     
     if (!email) {
-      return res.status(404).json({ message: 'Email not found or cannot be scheduled' });
+      return res.status(404).json({ success: false, message: 'Email not found or cannot be scheduled' });
     }
     
     email.status = 'scheduled';
@@ -260,12 +258,13 @@ router.post('/:id/schedule', auth, async (req, res) => {
     await email.save();
     
     res.json({ 
+      success: true,
       message: 'Email scheduled successfully',
       email
     });
   } catch (error) {
     console.error('Schedule email error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
@@ -278,7 +277,7 @@ router.get('/:id/analytics', auth, async (req, res) => {
     });
     
     if (!email) {
-      return res.status(404).json({ message: 'Email not found' });
+      return res.status(404).json({ success: false, message: 'Email not found' });
     }
     
     const analytics = {
@@ -292,10 +291,10 @@ router.get('/:id/analytics', auth, async (req, res) => {
       clickRate: email.to.length > 0 ? (email.clickTracking.clicks.length / email.to.length * 100).toFixed(2) : 0
     };
     
-    res.json({ analytics });
+    res.json({ success: true, analytics });
   } catch (error) {
     console.error('Get analytics error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
@@ -306,7 +305,7 @@ router.get('/:id/track/:recipientEmail', async (req, res) => {
     
     const email = await Email.findById(id);
     if (!email) {
-      return res.status(404).json({ message: 'Email not found' });
+      return res.status(404).json({ success: false, message: 'Email not found' });
     }
     
     // Add tracking pixel

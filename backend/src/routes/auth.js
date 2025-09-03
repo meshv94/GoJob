@@ -67,7 +67,7 @@ router.post('/send-otp', async (req, res) => {
     // Generate new OTP
     const otp = emailService.generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
-
+    console.log(otp, otpExpiry);
     user.otp = {
       code: otp,
       expiresAt: otpExpiry

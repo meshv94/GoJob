@@ -1,0 +1,827 @@
+{
+  "info": {
+    "name": "GoJob Email Sender API",
+    "description": "Comprehensive API collection for GoJob Email Sender - A bulk email management system with authentication, group management, and email tracking features.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "groupId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "emailId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "API Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the API is running and healthy"
+          },
+          "response": []
+        },
+        {
+          "name": "API Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1"]
+            },
+            "description": "Get API information and available endpoints"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('userId', response.userId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user account. An OTP will be sent to the provided email for verification."
+          },
+          "response": []
+        },
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/send-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "send-otp"]
+            },
+            "description": "Send OTP to user's email for verification"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('authToken', response.token);",
+                  "    pm.collectionVariables.set('userId', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-otp"]
+            },
+            "description": "Verify OTP and get authentication token"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('authToken', response.token);",
+                  "    pm.collectionVariables.set('userId', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Get current user profile information"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "change-password"]
+            },
+            "description": "Change user password"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Groups",
+      "item": [
+        {
+          "name": "Get All Groups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups"]
+            },
+            "description": "Get all groups for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Group by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{groupId}}"]
+            },
+            "description": "Get a specific group by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('groupId', response.group._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marketing Team\",\n  \"emails\": [\n    {\n      \"email\": \"john@example.com\"\n    },\n    {\n      \"email\": \"jane@example.com\"\n    },\n    {\n      \"email\": \"bob@example.com\"\n    }\n  ],\n  \"minEmails\": 1,\n  \"maxEmails\": 1000,\n  \"tags\": [\"marketing\", \"team\"],\n  \"description\": \"Marketing team email group\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups"]
+            },
+            "description": "Create a new email group with validation"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Group",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Marketing Team\",\n  \"description\": \"Updated description for marketing team\",\n  \"tags\": [\"marketing\", \"team\", \"updated\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{groupId}}"]
+            },
+            "description": "Update an existing group"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Group",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{groupId}}"]
+            },
+            "description": "Soft delete a group (sets isActive to false)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Emails to Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emails\": [\n    {\n      \"email\": \"newuser1@example.com\"\n    },\n    {\n      \"email\": \"newuser2@example.com\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}/emails",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{groupId}}", "emails"]
+            },
+            "description": "Add new emails to an existing group"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Emails from Group",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailIds\": [0, 1]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}/emails",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{groupId}}", "emails"]
+            },
+            "description": "Remove emails from group by their index positions"
+          },
+          "response": []
+        },
+        {
+          "name": "Import Emails from CSV",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "csvFile",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}/import",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{groupId}}", "import"]
+            },
+            "description": "Import emails from CSV file (placeholder for future implementation)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Emails",
+      "item": [
+        {
+          "name": "Get All Emails",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emails?status=draft&page=1&limit=10&search=test",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "draft",
+                  "description": "Filter by email status (draft, sent, scheduled, sending)"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of emails per page"
+                },
+                {
+                  "key": "search",
+                  "value": "test",
+                  "description": "Search in subject or recipient email"
+                }
+              ]
+            },
+            "description": "Get all emails with optional filtering and pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Email by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emails/{{emailId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails", "{{emailId}}"]
+            },
+            "description": "Get a specific email by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Email Draft",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('emailId', response.email._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+                         "body": {
+               "mode": "raw",
+               "raw": "{\n  \"from\": \"sender@example.com\",\n  \"to\": [\n    {\n      \"email\": \"recipient1@example.com\",\n      \"groupId\": \"{{groupId}}\"\n    },\n    {\n      \"email\": \"recipient2@example.com\"\n    }\n  ],\n  \"cc\": [\n    \"cc@example.com\"\n  ],\n  \"bcc\": [\n    \"bcc@example.com\"\n  ],\n  \"subject\": \"Test Email Subject\",\n  \"content\": \"<h1>Hello World!</h1><p>This is a test email content.</p>\",\n  \"attachments\": [\n    {\n      \"filename\": \"document.pdf\",\n      \"path\": \"/uploads/document.pdf\",\n      \"size\": 1024000\n    }\n  ]\n}"
+             },
+            "url": {
+              "raw": "{{baseUrl}}/emails",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails"]
+            },
+            "description": "Create a new email draft"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Email",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emails/{{emailId}}/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails", "{{emailId}}", "send"]
+            },
+            "description": "Send an email immediately (must be in draft or scheduled status)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Email",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+                         "body": {
+               "mode": "raw",
+               "raw": "{\n  \"subject\": \"Updated Email Subject\",\n  \"content\": \"<h1>Updated Content!</h1><p>This email has been updated.</p>\",\n  \"cc\": [\n    \"updated-cc@example.com\"\n  ]\n}"
+             },
+            "url": {
+              "raw": "{{baseUrl}}/emails/{{emailId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails", "{{emailId}}"]
+            },
+            "description": "Update an email draft or scheduled email"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Email",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emails/{{emailId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails", "{{emailId}}"]
+            },
+            "description": "Delete an email (only draft or scheduled emails can be deleted)"
+          },
+          "response": []
+        },
+        {
+          "name": "Schedule Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledAt\": \"2024-12-31T10:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emails/{{emailId}}/schedule",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails", "{{emailId}}", "schedule"]
+            },
+            "description": "Schedule an email to be sent at a specific time"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Email Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emails/{{emailId}}/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails", "{{emailId}}", "analytics"]
+            },
+            "description": "Get analytics data for a sent email including open rates, click rates, etc."
+          },
+          "response": []
+        },
+        {
+          "name": "Track Email Open",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emails/{{emailId}}/track/recipient@example.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails", "{{emailId}}", "track", "recipient@example.com"]
+            },
+            "description": "Track email open (returns tracking pixel image)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Test Scenarios",
+      "item": [
+        {
+          "name": "Complete Email Flow",
+          "item": [
+            {
+              "name": "1. Register User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"testpassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "register"]
+                }
+              }
+            },
+            {
+              "name": "2. Verify OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"otp\": \"123456\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/verify-otp",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "verify-otp"]
+                }
+              }
+            },
+            {
+              "name": "3. Create Group",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Test Group\",\n  \"emails\": [\n    {\n      \"email\": \"test1@example.com\"\n    },\n    {\n      \"email\": \"test2@example.com\"\n    }\n  ],\n  \"description\": \"Test group for API testing\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["groups"]
+                }
+              }
+            },
+            {
+              "name": "4. Create Email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"from\": \"testuser@example.com\",\n  \"to\": [\n    {\n      \"email\": \"test1@example.com\"\n    }\n  ],\n  \"subject\": \"Test Email from API\",\n  \"content\": \"<h1>Test Email</h1><p>This is a test email created via API.</p>\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/emails",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["emails"]
+                }
+              }
+            },
+            {
+              "name": "5. Send Email",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/emails/{{emailId}}/send",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["emails", "{{emailId}}", "send"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Error Testing",
+          "item": [
+            {
+              "name": "Invalid Email Format",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Invalid Group\",\n  \"emails\": [\n    {\n      \"email\": \"invalid-email-format\"\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["groups"]
+                },
+                "description": "Test validation error for invalid email format"
+              }
+            },
+            {
+              "name": "Missing Required Fields",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"emails\": []\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["groups"]
+                },
+                "description": "Test validation error for missing required fields"
+              }
+            },
+            {
+              "name": "Unauthorized Access",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["groups"]
+                },
+                "description": "Test unauthorized access without token"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set default values if not already set",
+          "if (!pm.collectionVariables.get('baseUrl')) {",
+          "    pm.collectionVariables.set('baseUrl', 'http://localhost:3000');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has proper content type', function () {",
+          "    if (pm.response.headers.get('Content-Type')) {",
+          "        pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "    }",
+          "});"
+        ]
+      }
+    }
+  ]
+}
