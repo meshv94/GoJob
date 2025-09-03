@@ -1,0 +1,15 @@
+body.bg-dark {
+  background-color: #18191a !important;
+  color: #f1f1f1 !important;
+}
+.bg-dark .card,
+.bg-dark .modal-content {
+  background-color: #23272b !important;
+  color: #f1f1f1 !important;
+}
+.bg-dark .table {
+  color: #f1f1f1;
+}
+.bg-dark .nav-link {
+  color: #f1f1f1 !important;
+}
