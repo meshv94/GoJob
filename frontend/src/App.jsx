@@ -7,7 +7,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Sidebar from './components/Sidebar';
 // Import your new pages here
 import EmailsPage from './pages/EmailsPage';
-// import GroupsPage from './pages/GroupsPage';
+import GroupsPage from './pages/GroupsPage';
 // import TemplatesPage from './pages/TemplatesPage';
 // import FilesPage from './pages/FilesPage';
 import SettingsPage from './pages/SettingsPage';
@@ -38,7 +38,7 @@ function App() {
           <div className="flex-grow-1 p-4">
             <PrivateRoute path="/dashboard" component={DashboardPage} />
             <PrivateRoute path="/emails" component={EmailsPage} />
-            {/* <PrivateRoute path="/groups" component={GroupsPage} /> */}
+            <PrivateRoute path="/groups" component={GroupsPage} />
             {/* <PrivateRoute path="/templates" component={TemplatesPage} /> */}
             {/* <PrivateRoute path="/files" component={FilesPage} /> */}
             <PrivateRoute path="/settings" render={props => (

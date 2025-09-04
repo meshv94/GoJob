@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Form, Spinner, Modal, Tabs, Tab } from 'react-bootstrap';
+import { Table, Button, Form, Spinner, Modal, Tabs, Tab, InputGroup } from 'react-bootstrap';
 import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
 
@@ -23,13 +23,15 @@ function EmailsPage() {
   const [savingDraft, setSavingDraft] = useState(false);
   const [tab, setTab] = useState('sent');
   const [drafts, setDrafts] = useState([]);
+  const [user, setUser] = useState(null);
+  const [groups, setGroups] = useState([]);
 
   // Fetch emails
   const fetchEmails = async () => {
     setLoading(true);
     try {
       const res = await axios.get(API_URL);
-      const data = Array.isArray(res.emails) ? res.emails :  [];
+      const data = Array.isArray(res.data.emails) ? res.data.emails : [];
       setEmails(data);
     } catch (err) {
       toast.error('Failed to fetch emails');
@@ -52,9 +54,41 @@ function EmailsPage() {
     setLoading(false);
   };
 
+  // Fetch user profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/auth/profile');
+        setUser(res.data.user || res.data);
+      } catch (err) {
+        setUser(null);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   useEffect(() => {
     fetchEmails();
     fetchDrafts();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      setForm(f => ({ ...f, from: user.email }));
+    }
+  }, [user]);
+
+  // Fetch groups
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/groups');
+        setGroups(Array.isArray(res.data) ? res.data : res.data.groups || []);
+      } catch (err) {
+        setGroups([]);
+      }
+    };
+    fetchGroups();
   }, []);
 
   // Send email
@@ -143,6 +177,20 @@ function EmailsPage() {
     setLoading(false);
   };
 
+  // Send draft
+  const handleSendDraft = async (id) => {
+    setLoading(true);
+    try {
+      await axios.post(`${API_URL}/${id}/send`);
+      toast.success('Draft sent!');
+      fetchEmails();
+      fetchDrafts();
+    } catch (err) {
+      toast.error('Failed to send draft');
+    }
+    setLoading(false);
+  };
+
   return (
     <div>
       <ToastContainer />
@@ -175,7 +223,11 @@ function EmailsPage() {
                 ) : (
                   emails.map(email => (
                     <tr key={email._id}>
-                      <td>{email.to}</td>
+                      <td>
+                        {Array.isArray(email.to)
+                          ? email.to.map(t => t.email).join(', ')
+                          : email.to}
+                      </td>
                       <td>{email.subject}</td>
                       <td>{email.status}</td>
                       <td>{email.createdAt ? new Date(email.createdAt).toLocaleString() : ''}</td>
@@ -197,8 +249,8 @@ function EmailsPage() {
                         </Button>
                       </td>
                     </tr>
-                  ))
-                )}
+                  )))
+                }
               </tbody>
             </Table>
           )}
@@ -227,11 +279,23 @@ function EmailsPage() {
                 ) : (
                   drafts.map(draft => (
                     <tr key={draft._id}>
-                      <td>{draft.to}</td>
+                      <td>
+                        {Array.isArray(draft.to)
+                          ? draft.to.map(t => t.email).join(', ')
+                          : draft.to}
+                      </td>
                       <td>{draft.subject}</td>
                       <td>{draft.status}</td>
                       <td>{draft.createdAt ? new Date(draft.createdAt).toLocaleString() : ''}</td>
                       <td>
+                        <Button
+                          size="sm"
+                          variant="success"
+                          className="me-2"
+                          onClick={() => handleSendDraft(draft._id)}
+                        >
+                          Send
+                        </Button>
                         <Button
                           size="sm"
                           variant="info"
@@ -258,25 +322,53 @@ function EmailsPage() {
       </Tabs>
 
       {/* Send Email Modal */}
-      <Modal show={showSendModal} onHide={() => setShowSendModal(false)}>
+      <Modal show={showSendModal} onHide={() => setShowSendModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Create Email Draft</Modal.Title>
+          <Modal.Title>
+            <span role="img" aria-label="draft">✉️</span> Create Email Draft
+          </Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSaveDraft}>
-          <Modal.Body>
+          <Modal.Body style={{ background: "#f8fafc" }}>
+            <div className="mb-3">
+              <Form.Label className="fw-bold">Select Group</Form.Label>
+              <Form.Control
+                as="select"
+                onChange={e => {
+                  const groupId = e.target.value;
+                  if (!groupId) return;
+                  const group = groups.find(g => g._id === groupId);
+                  if (group && group.emails && group.emails.length > 0) {
+                    setForm({
+                      ...form,
+                      to: group.emails.map(m => ({ email: m.email })),
+                    });
+                  }
+                }}
+                defaultValue=""
+              >
+                <option value="">-- Select Group --</option>
+                {groups.map(group => (
+                  <option key={group._id} value={group._id}>
+                    {group.name}
+                  </option>
+                ))}
+              </Form.Control>
+            </div>
+            <hr />
             <Form.Group className="mb-3">
-              <Form.Label>From</Form.Label>
+              <Form.Label className="fw-bold">From</Form.Label>
               <Form.Control
                 type="email"
-                placeholder="Sender email"
                 value={form.from}
-                onChange={e => setForm({ ...form, from: e.target.value })}
-                required
+                readOnly
+                disabled
+                style={{ background: "#e9ecef", fontWeight: 500 }}
               />
             </Form.Group>
-            <Form.Label>To</Form.Label>
+            <Form.Label className="fw-bold">To</Form.Label>
             {form.to.map((recipient, idx) => (
-              <Form.Group className="mb-2" key={idx}>
+              <InputGroup className="mb-2" key={idx}>
                 <Form.Control
                   type="email"
                   placeholder="Recipient email"
@@ -284,11 +376,31 @@ function EmailsPage() {
                   onChange={e => handleToChange(idx, e.target.value)}
                   required
                 />
-              </Form.Group>
+                <Button
+                  variant="outline-danger"
+                  onClick={() => {
+                    const updated = form.to.filter((_, i) => i !== idx);
+                    setForm({ ...form, to: updated.length ? updated : [{ email: '' }] });
+                  }}
+                  disabled={form.to.length === 1}
+                  title="Remove recipient"
+                >
+                  &times;
+                </Button>
+              </InputGroup>
             ))}
-            <Button size="sm" variant="secondary" onClick={handleAddTo}>Add Recipient</Button>
-            <Form.Group className="mb-3 mt-3">
-              <Form.Label>CC</Form.Label>
+            <Button
+              size="sm"
+              variant="outline-primary"
+              className="mb-3"
+              onClick={handleAddTo}
+              title="Add another recipient"
+            >
+              + Add Recipient
+            </Button>
+            <hr />
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-bold">CC</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Comma separated emails"
@@ -297,7 +409,7 @@ function EmailsPage() {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>BCC</Form.Label>
+              <Form.Label className="fw-bold">BCC</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Comma separated emails"
@@ -306,7 +418,7 @@ function EmailsPage() {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Subject</Form.Label>
+              <Form.Label className="fw-bold">Subject</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Subject"
@@ -316,7 +428,7 @@ function EmailsPage() {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Content (HTML allowed)</Form.Label>
+              <Form.Label className="fw-bold">Content (HTML allowed)</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={4}
@@ -326,9 +438,9 @@ function EmailsPage() {
                 required
               />
             </Form.Group>
-            {/* Attachments can be handled here if needed */}
+            {/* Attachments UI can go here */}
           </Modal.Body>
-          <Modal.Footer>
+          <Modal.Footer style={{ background: "#f8fafc" }}>
             <Button variant="secondary" onClick={() => setShowSendModal(false)}>
               Cancel
             </Button>
@@ -351,14 +463,26 @@ function EmailsPage() {
         <Modal.Body>
           {selectedEmail ? (
             <div>
-              <p><strong>To:</strong> {selectedEmail.to}</p>
+              <p>
+                <strong>To:</strong>{" "}
+                {Array.isArray(selectedEmail.to)
+                  ? selectedEmail.to.map(t => t.email).join(", ")
+                  : selectedEmail.to}
+              </p>
               <p><strong>Subject:</strong> {selectedEmail.subject}</p>
               <p><strong>Status:</strong> {selectedEmail.status}</p>
               <p><strong>Body:</strong></p>
-              <div className="border rounded p-2 mb-2" style={{ background: "#f8f9fa" }}>
-                {selectedEmail.body}
-              </div>
-              <p><strong>Sent At:</strong> {selectedEmail.createdAt ? new Date(selectedEmail.createdAt).toLocaleString() : ''}</p>
+              <div
+                className="border rounded p-2 mb-2"
+                style={{ background: "#f8f9fa" }}
+                dangerouslySetInnerHTML={{ __html: selectedEmail.content }}
+              />
+              <p>
+                <strong>Sent At:</strong>{" "}
+                {selectedEmail.createdAt
+                  ? new Date(selectedEmail.createdAt).toLocaleString()
+                  : ""}
+              </p>
             </div>
           ) : (
             <Spinner animation="border" />
