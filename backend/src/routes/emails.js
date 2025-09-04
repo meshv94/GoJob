@@ -142,7 +142,7 @@ router.post('/:id/send', auth, async (req, res) => {
     }));
     
     // Send emails
-    const results = await emailService.sendBulkEmails(emailData);
+    const results = await emailService.sendBulkEmails(emailData, req.user._id);
     
     // Update delivery status
     email.deliveryStatus = results.map(result => ({
@@ -228,7 +228,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Email not found or cannot be deleted' });
     }
     
-    await email.remove();
+    await email.deleteOne();
     
     res.json({ success: true, message: 'Email deleted successfully' });
   } catch (error) {
@@ -330,5 +330,6 @@ router.get('/:id/track/:recipientEmail', async (req, res) => {
     res.status(500).send();
   }
 });
+
 
 export default router;

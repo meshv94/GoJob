@@ -30,7 +30,14 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  smtp: {
+    host: { type: String, default: 'smtp.gmail.com' },
+    port: { type: Number, default: 587 },
+    user: { type: String },
+    pass: { type: String }
   }
+  
 }, {
   timestamps: true
 });

@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { generateToken } from '../middleware/auth.js';
+import User from '../models/User.js';
 
 class EmailService {
   constructor() {
@@ -41,7 +42,8 @@ class EmailService {
   }
 
   // Send bulk emails
-  async sendBulkEmails(emailData) {
+  async sendBulkEmails(emailData, userId) {
+    const transporter = await this.getUserTransporter(userId);
     const results = [];
     
     for (const email of emailData) {
@@ -56,7 +58,7 @@ class EmailService {
           attachments: email.attachments || []
         };
 
-        const result = await this.transporter.sendMail(mailOptions);
+        const result = await transporter.sendMail(mailOptions);
         results.push({
           email: email.to,
           success: true,
@@ -77,8 +79,10 @@ class EmailService {
   }
 
   // Send single email
-  async sendEmail(emailData) {
+  async sendEmail(emailData, userId) {
     try {
+    const transporter = await this.getUserTransporter(userId);
+
       const mailOptions = {
         from: emailData.from,
         to: emailData.to,
@@ -89,7 +93,7 @@ class EmailService {
         attachments: emailData.attachments || []
       };
 
-      const result = await this.transporter.sendMail(mailOptions);
+      const result = await transporter.sendMail(mailOptions);
       return { success: true, messageId: result.messageId };
     } catch (error) {
       console.error('Error sending email:', error);
@@ -111,6 +115,24 @@ class EmailService {
       console.error('SMTP connection failed:', error);
       return false;
     }
+  }
+
+  async getUserTransporter(userId) {
+    const user = await User.findById(userId);
+  
+    if (!user.smtp || !user.smtp.user || !user.smtp.pass) {
+      throw new Error("User has not configured SMTP settings");
+    }
+  
+    return nodemailer.createTransport({
+      host: user.smtp.host,
+      port: user.smtp.port,
+      secure: false,
+      auth: {
+        user: user.smtp.user,
+        pass: user.smtp.pass
+      }
+    });
   }
 }
 

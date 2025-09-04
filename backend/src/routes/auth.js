@@ -177,13 +177,18 @@ router.post('/login', async (req, res) => {
 // Get current user profile
 router.get('/profile', auth, async (req, res) => {
   try {
+
+    const hasSMTP =
+      req.user.smtp && req.user.smtp.user && req.user.smtp.pass ? true : false;
+
     res.json({
       user: {
         id: req.user._id,
         email: req.user.email,
         isVerified: req.user.isVerified,
         emailQuota: req.user.emailQuota,
-        createdAt: req.user.createdAt
+        createdAt: req.user.createdAt,
+        hasSMTP: hasSMTP
       }
     });
   } catch (error) {
@@ -213,5 +218,92 @@ router.put('/change-password', auth, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+// Save SMTP credentials for logged-in user
+router.post('/smtp', auth, async (req, res) => {
+  try {
+    const { smtpUser, smtpPass, smtpHost, smtpPort } = req.body;
+
+    if (!smtpUser || !smtpPass) {
+      return res.status(404).json({ success: false, message: 'SMTP credentials not found' });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    user.smtp = {
+      host: smtpHost || 'smtp.gmail.com',
+      port: smtpPort || 587,
+      user: smtpUser,
+      pass: smtpPass // 🚨 Encrypt before saving in real apps
+    };
+
+    await user.save();
+
+    res.json({ success: true, message: 'SMTP credentials saved' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Get SMTP credentials for logged-in user
+router.get('/smtp', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('smtp');
+
+    if (!user || !user.smtp || !user.smtp.user) {
+      return res.json({ success: false, message: 'No SMTP details found' });
+    }
+
+    // Don't send password in plain text 🚨
+    const { host, port, user: smtpUser, pass } = user.smtp;
+
+    res.json({
+      success: true,
+      smtp: {
+        host,
+        port,
+        user: smtpUser,
+        hasSMTP: true,
+        pass
+      }
+    });
+  } catch (error) {
+    console.error('Get SMTP error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Update SMTP credentials
+router.put('/smtp', auth, async (req, res) => {
+  try {
+    const { smtpUser, smtpPass, smtpHost, smtpPort } = req.body;
+
+    if (!smtpUser || !smtpPass) {
+      return res.status(400).json({ success: false, message: 'SMTP user & pass are required' });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.smtp = {
+      host: smtpHost || user.smtp?.host || 'smtp.gmail.com',
+      port: smtpPort || user.smtp?.port || 587,
+      user: smtpUser,
+      pass: smtpPass // 🚨 Encrypt in production
+    };
+
+    await user.save();
+
+    res.json({ success: true, message: 'SMTP credentials updated' });
+  } catch (error) {
+    console.error('Update SMTP error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 
 export default router;

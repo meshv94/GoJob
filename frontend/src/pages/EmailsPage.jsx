@@ -240,13 +240,13 @@ function EmailsPage() {
                         >
                           Details
                         </Button>
-                        <Button
+                        {/* <Button
                           size="sm"
                           variant="danger"
                           onClick={() => handleDelete(email._id)}
                         >
                           Delete
-                        </Button>
+                        </Button> */}
                       </td>
                     </tr>
                   )))
@@ -288,14 +288,14 @@ function EmailsPage() {
                       <td>{draft.status}</td>
                       <td>{draft.createdAt ? new Date(draft.createdAt).toLocaleString() : ''}</td>
                       <td>
-                        <Button
+                        {/* <Button
                           size="sm"
                           variant="success"
                           className="me-2"
                           onClick={() => handleSendDraft(draft._id)}
                         >
                           Send
-                        </Button>
+                        </Button> */}
                         <Button
                           size="sm"
                           variant="info"
@@ -322,16 +322,31 @@ function EmailsPage() {
       </Tabs>
 
       {/* Send Email Modal */}
-      <Modal show={showSendModal} onHide={() => setShowSendModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <span role="img" aria-label="draft">✉️</span> Create Email Draft
+      <Modal
+        show={showSendModal}
+        onHide={() => setShowSendModal(false)}
+        centered
+        size="lg"
+        className="email-compose-modal"
+      >
+        {/* Gradient header with icon */}
+        <Modal.Header
+          closeButton
+          className="border-0 text-white"
+          style={{ background: "linear-gradient(90deg, #3b82f6, #2563eb)" }}
+        >
+          <Modal.Title className="fw-bold d-flex align-items-center">
+            Create Email Draft
           </Modal.Title>
         </Modal.Header>
+
         <Form onSubmit={handleSaveDraft}>
-          <Modal.Body style={{ background: "#f8fafc" }}>
-            <div className="mb-3">
-              <Form.Label className="fw-bold">Select Group</Form.Label>
+          <Modal.Body className="px-4 py-3 bg-light">
+            {/* Select Group */}
+            <div className="mb-3 animate-fadeIn">
+              <Form.Label className="fw-bold text-muted">
+                <i className="bi bi-people me-2"></i> Select Group
+              </Form.Label>
               <Form.Control
                 as="select"
                 onChange={e => {
@@ -346,6 +361,7 @@ function EmailsPage() {
                   }
                 }}
                 defaultValue=""
+                className="rounded-pill shadow-sm"
               >
                 <option value="">-- Select Group --</option>
                 {groups.map(group => (
@@ -355,32 +371,44 @@ function EmailsPage() {
                 ))}
               </Form.Control>
             </div>
-            <hr />
-            <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">From</Form.Label>
+
+            {/* From */}
+            <Form.Group className="mb-3 animate-fadeIn">
+              <Form.Label className="fw-bold text-muted">
+                <i className="bi bi-person-circle me-2"></i> From
+              </Form.Label>
               <Form.Control
                 type="email"
                 value={form.from}
                 readOnly
                 disabled
+                className="shadow-sm"
                 style={{ background: "#e9ecef", fontWeight: 500 }}
               />
             </Form.Group>
-            <Form.Label className="fw-bold">To</Form.Label>
+
+            {/* To */}
+            <Form.Label className="fw-bold text-muted">
+              <i className="bi bi-envelope me-2"></i> To
+            </Form.Label>
             {form.to.map((recipient, idx) => (
-              <InputGroup className="mb-2" key={idx}>
+              <InputGroup className="mb-2 animate-slideUp" key={idx}>
                 <Form.Control
                   type="email"
                   placeholder="Recipient email"
                   value={recipient.email}
                   onChange={e => handleToChange(idx, e.target.value)}
                   required
+                  className="shadow-sm"
                 />
                 <Button
                   variant="outline-danger"
                   onClick={() => {
                     const updated = form.to.filter((_, i) => i !== idx);
-                    setForm({ ...form, to: updated.length ? updated : [{ email: '' }] });
+                    setForm({
+                      ...form,
+                      to: updated.length ? updated : [{ email: '' }],
+                    });
                   }}
                   disabled={form.to.length === 1}
                   title="Remove recipient"
@@ -392,108 +420,202 @@ function EmailsPage() {
             <Button
               size="sm"
               variant="outline-primary"
-              className="mb-3"
+              className="mb-3 rounded-pill shadow-sm"
               onClick={handleAddTo}
-              title="Add another recipient"
             >
               + Add Recipient
             </Button>
-            <hr />
-            <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">CC</Form.Label>
+
+            {/* CC */}
+            <Form.Group className="mb-3 animate-fadeIn">
+              <Form.Label className="fw-bold text-muted">
+                <i className="bi bi-people-fill me-2"></i> CC
+              </Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Comma separated emails"
                 value={form.cc.join(',')}
-                onChange={e => setForm({ ...form, cc: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                onChange={e =>
+                  setForm({
+                    ...form,
+                    cc: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
+                  })
+                }
+                className="shadow-sm"
               />
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">BCC</Form.Label>
+
+            {/* BCC */}
+            <Form.Group className="mb-3 animate-fadeIn">
+              <Form.Label className="fw-bold text-muted">
+                <i className="bi bi-eye-slash me-2"></i> BCC
+              </Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Comma separated emails"
                 value={form.bcc.join(',')}
-                onChange={e => setForm({ ...form, bcc: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                onChange={e =>
+                  setForm({
+                    ...form,
+                    bcc: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
+                  })
+                }
+                className="shadow-sm"
               />
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">Subject</Form.Label>
+
+            {/* Subject */}
+            <Form.Group className="mb-3 animate-fadeIn">
+              <Form.Label className="fw-bold text-muted">
+                <i className="bi bi-card-text me-2"></i> Subject
+              </Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Subject"
                 value={form.subject}
                 onChange={e => setForm({ ...form, subject: e.target.value })}
                 required
+                className="shadow-sm"
               />
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">Content (HTML allowed)</Form.Label>
+
+            {/* Content */}
+            <Form.Group className="mb-3 animate-fadeIn">
+              <Form.Label className="fw-bold text-muted">
+                <i className="bi bi-file-text me-2"></i> Content
+              </Form.Label>
               <Form.Control
                 as="textarea"
-                rows={4}
-                placeholder="Email content"
+                rows={5}
+                placeholder="Write your email content (HTML supported)"
                 value={form.content}
                 onChange={e => setForm({ ...form, content: e.target.value })}
                 required
+                className="shadow-sm"
               />
             </Form.Group>
-            {/* Attachments UI can go here */}
           </Modal.Body>
-          <Modal.Footer style={{ background: "#f8fafc" }}>
-            <Button variant="secondary" onClick={() => setShowSendModal(false)}>
+
+          {/* Footer */}
+          <Modal.Footer className="border-0 bg-light">
+            <Button
+              variant="outline-secondary"
+              className="rounded-pill px-4 shadow-sm"
+              onClick={() => setShowSendModal(false)}
+            >
               Cancel
             </Button>
             <Button
               variant="warning"
               type="submit"
               disabled={savingDraft}
+              className="rounded-pill px-4 shadow-sm"
             >
-              {savingDraft ? <Spinner size="sm" animation="border" /> : 'Save as Draft'}
+              {savingDraft ? (
+                <Spinner size="sm" animation="border" />
+              ) : (
+                "Save as Draft"
+              )}
             </Button>
           </Modal.Footer>
         </Form>
       </Modal>
 
       {/* Email Details Modal */}
-      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Email Details</Modal.Title>
+      <Modal
+        show={showDetailModal}
+        onHide={() => setShowDetailModal(false)}
+        centered
+        size="lg"
+        className="email-detail-modal"
+      >
+        <Modal.Header closeButton className="border-0 p-3" style={{ background: "linear-gradient(90deg, #3b82f6, #2563eb)" }}>
+          <Modal.Title className="fw-bold text-white d-flex align-items-center">
+            <i className="bi bi-envelope-fill me-2"></i> Email Details
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+
+        <Modal.Body className="px-4 py-3 bg-light">
           {selectedEmail ? (
-            <div>
-              <p>
-                <strong>To:</strong>{" "}
-                {Array.isArray(selectedEmail.to)
-                  ? selectedEmail.to.map(t => t.email).join(", ")
-                  : selectedEmail.to}
-              </p>
-              <p><strong>Subject:</strong> {selectedEmail.subject}</p>
-              <p><strong>Status:</strong> {selectedEmail.status}</p>
-              <p><strong>Body:</strong></p>
+            <div className="email-details">
+
+              {/* To */}
+              <div className="d-flex align-items-center mb-3 p-3 bg-white rounded shadow-sm">
+                <i className="bi bi-people me-2 text-primary fs-5"></i>
+                <div>
+                  <small className="text-muted d-block">To</small>
+                  <span className="fw-semibold">
+                    {Array.isArray(selectedEmail.to)
+                      ? selectedEmail.to.map(t => t.email).join(", ")
+                      : selectedEmail.to}
+                  </span>
+                </div>
+              </div>
+
+              {/* Subject */}
+              <div className="d-flex align-items-center mb-3 p-3 bg-white rounded shadow-sm">
+                <i className="bi bi-envelope-paper me-2 text-primary fs-5"></i>
+                <div>
+                  <small className="text-muted d-block">Subject</small>
+                  <span className="fw-semibold">{selectedEmail.subject}</span>
+                </div>
+              </div>
+
+              {/* Status + Date */}
+              <div className="d-flex justify-content-between align-items-center mb-3 p-3 bg-white rounded shadow-sm">
+                <div>
+                  <span
+                    className={`badge px-3 py-2 rounded-pill ${
+                      selectedEmail.status === "sent"
+                        ? "bg-success"
+                        : selectedEmail.status === "failed"
+                        ? "bg-danger"
+                        : "bg-warning text-dark"
+                    }`}
+                  >
+                    {selectedEmail.status === "sent" ? "✔ Sent" : selectedEmail.status}
+                  </span>
+                </div>
+                <div className="text-muted small">
+                  <i className="bi bi-clock me-1"></i>
+                  {selectedEmail.createdAt
+                    ? new Date(selectedEmail.createdAt).toLocaleString()
+                    : ""}
+                </div>
+              </div>
+
+              {/* Message Content */}
+              <h6 className="fw-bold mb-2">Message Content</h6>
               <div
-                className="border rounded p-2 mb-2"
-                style={{ background: "#f8f9fa" }}
+                className="border rounded p-3 bg-white shadow-sm email-body"
                 dangerouslySetInnerHTML={{ __html: selectedEmail.content }}
               />
-              <p>
-                <strong>Sent At:</strong>{" "}
-                {selectedEmail.createdAt
-                  ? new Date(selectedEmail.createdAt).toLocaleString()
-                  : ""}
-              </p>
             </div>
           ) : (
-            <Spinner animation="border" />
+            <div className="d-flex justify-content-center align-items-center py-4">
+              <Spinner animation="border" />
+            </div>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+
+        <Modal.Footer className="border-0 bg-light">
+         <Button
+            variant="success"
+            className="rounded-pill px-4 me-2 shadow-sm"
+            onClick={() => handleSendDraft(selectedEmail._id)}
+          >
+            Send
+          </Button>
+          <Button
+            variant="dark"
+            className="rounded-pill px-4"
+            onClick={() => setShowDetailModal(false)}
+          >
             Close
           </Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   );
 }
