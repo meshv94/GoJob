@@ -18,7 +18,7 @@ function App() {
   });
   const [hasSmtp, setHasSmtp] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
-  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [globalError, setGlobalError] = useState(false);
 
   useEffect(() => {
@@ -50,6 +50,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    setProfileLoading(false);
     window.location.href = '/';
   };
 
@@ -83,7 +84,7 @@ function App() {
     <Router>
       {profileLoading ? (
         <div className="d-flex justify-content-center my-4">
-            <CircleLoader color="#007bff" size={80} />
+            <CircleLoader color="#007bff" size={150} />
         </div>
       ) : (
         <Switch>
@@ -106,28 +107,68 @@ function App() {
         </Switch>
       )}
 
-      {/* Warning Modal */}
-      <Modal show={showWarning} onHide={() => setShowWarning(false)} centered size="lg">
-        <Modal.Header >
-          <Modal.Title>⚠️ SMTP Required</Modal.Title>
+      {/* Modern SMTP Warning Modal */}
+      <Modal
+        show={showWarning}
+        centered
+        size="md"
+        className="smtp-warning-modal"
+      >
+        <Modal.Header
+          className="border-0 text-white"
+          style={{
+            background: "linear-gradient(90deg, #f59e42 0%, #f43f5e 100%)"
+          }}
+        >
+          <Modal.Title className="fw-bold d-flex align-items-center">
+            <span style={{ fontSize: 32, marginRight: 12 }}>⚠️</span>
+            SMTP Required
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          You need to add your SMTP details in <b>Settings</b> to use this feature.
+        <Modal.Body
+          className="px-4 py-4"
+          style={{
+            background: "linear-gradient(135deg, #fff7ed 0%, #ffe4e6 100%)",
+            borderBottomLeftRadius: "1rem",
+            borderBottomRightRadius: "1rem"
+          }}
+        >
+          <div className="d-flex flex-column align-items-center">
+            <div
+              className="mb-3"
+              style={{
+                background: "#fff",
+                borderRadius: "50%",
+                width: 70,
+                height: 70,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(244,63,94,0.12)"
+              }}
+            >
+              <span style={{ fontSize: 36 }}>🔒</span>
+            </div>
+            <h4 className="fw-bold mb-2 text-danger text-center">SMTP Setup Needed</h4>
+            <p className="text-center text-muted mb-3" style={{ fontSize: 17 }}>
+              To use email features, please add your <b>SMTP details</b> in <span className="text-danger">Settings</span>.
+              <br />
+              This helps us send emails securely from your account.
+            </p>
+            <div className="d-flex gap-2 justify-content-center">
+              <Button
+                variant="danger"
+                className="rounded-pill px-4 shadow-sm"
+                onClick={() => {
+                  setShowWarning(false);
+                  window.location.href = '/dashboard';
+                }}
+              >
+                Go to Dashboard
+              </Button>
+            </div>
+          </div>
         </Modal.Body>
-        <Modal.Footer>
-          {/* <Button variant="secondary" onClick={() => setShowWarning(false)}>
-            Close
-          </Button> */}
-          <Button
-            variant="primary"
-            onClick={() => {
-              setShowWarning(false);
-              window.location.href = '/dashboard';
-            }}
-          >
-            Go to Dashboard
-          </Button>
-        </Modal.Footer>
       </Modal>
     </Router>
   );
