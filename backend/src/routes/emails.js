@@ -5,6 +5,7 @@ import { auth } from '../middleware/auth.js';
 import { validateEmail } from '../middleware/validate.js';
 import emailService from '../utils/emailService.js';
 import User from '../models/User.js';
+import emailQueue from '../jobs/emailQueue.js';
 
 const router = express.Router();
 
@@ -240,14 +241,17 @@ router.delete('/:id', auth, async (req, res) => {
 // Schedule email
 router.post('/:id/schedule', auth, validateEmail.schedule, async (req, res) => {
   try {
+    console.log("Scheduling email...");
     // Validation is now handled by middleware
     const { scheduledAt } = req.body;
+    console.log("Scheduling email...", scheduledAt);
     
     const email = await Email.findOne({ 
       _id: req.params.id, 
       userId: req.user._id,
       status: 'draft'
     });
+    console.log("Scheduling email...", email);
     
     if (!email) {
       return res.status(404).json({ success: false, message: 'Email not found or cannot be scheduled' });
@@ -256,8 +260,23 @@ router.post('/:id/schedule', auth, validateEmail.schedule, async (req, res) => {
     email.status = 'scheduled';
     email.scheduledAt = new Date(scheduledAt);
     await email.save();
+
+    // Add job to Bull queue
+    const delay = new Date(scheduledAt) - Date.now();
+    console.log("Scheduling email with delay:", delay);
+    if (delay > 0) {
+      await emailQueue.add(
+        { emailId: email._id, userId: req.user._id },
+        { delay }
+      );
+    } else {
+      // If scheduledAt is in the past, send immediately
+      await emailQueue.add(
+        { emailId: email._id, userId: req.user._id }
+      );
+    }
     
-    res.json({ 
+    res.json({
       success: true,
       message: 'Email scheduled successfully',
       email

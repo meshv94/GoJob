@@ -6,6 +6,7 @@ import cors from "cors";
 import connectDB from "./src/config/database.js";
 import routes from "./src/routes/index.js";
 import config, { validateConfig } from "./src/config/config.js";
+import emailQueue from './src/jobs/emailQueue.js';
 
 // Load environment variables
 // app.use(dotenv.config())
@@ -22,17 +23,25 @@ import config, { validateConfig } from "./src/config/config.js";
 
 const app = express();
 
+//cors configuration
+app.use(cors({
+  origin: '*', // Allow all origins for simplicity; adjust in production
+  methods: "*",
+  allowedHeaders: "*",
+}));
+
+// Add this line:
+app.use(express.json());
+
 // Connect to MongoDB
 connectDB();
-
-// Middleware
-app.use(cors());
-app.use(express.json({ limit: config.upload.maxFileSize }));
-app.use(express.urlencoded({ extended: true, limit: config.upload.maxFileSize }));
 
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  // console.log('Headers:', req.headers);
+  // console.log('Body:', req.body);
+  // console.log('Query:', req.query);
   next();
 });
 

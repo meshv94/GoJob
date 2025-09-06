@@ -4,7 +4,7 @@ export const validate = (schema, source = 'body') => {
   return (req, res, next) => {
     try {
       const dataToValidate = req[source];
-      
+      console.log('Validating data from', source, ':', dataToValidate, ":", req.body);
       if (!dataToValidate) {
         return res.status(400).json({
           success: false,

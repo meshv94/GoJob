@@ -57,7 +57,8 @@ class EmailService {
           html: email.content,
           attachments: email.attachments || []
         };
-
+        console.log('Sending email to:', email.to);
+        console.log('Mail options:', mailOptions);
         const result = await transporter.sendMail(mailOptions);
         results.push({
           email: email.to,

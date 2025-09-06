@@ -10,6 +10,7 @@ function EmailsPage() {
   const [loading, setLoading] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [form, setForm] = useState({
     from: '',
@@ -25,12 +26,17 @@ function EmailsPage() {
   const [drafts, setDrafts] = useState([]);
   const [user, setUser] = useState(null);
   const [groups, setGroups] = useState([]);
+  const [editDraftId, setEditDraftId] = useState(null);
+  const [scheduleEmailId, setScheduleEmailId] = useState(null);
+  const [scheduledAt, setScheduledAt] = useState('');
+  const [scheduling, setScheduling] = useState(false);
+  const [scheduledEmails, setScheduledEmails] = useState([]);
 
   // Fetch emails
   const fetchEmails = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(API_URL);
+      const res = await axios.get(`${API_URL}?status=sent`);
       const data = Array.isArray(res.data.emails) ? res.data.emails : [];
       setEmails(data);
     } catch (err) {
@@ -54,6 +60,20 @@ function EmailsPage() {
     setLoading(false);
   };
 
+  // Fetch scheduled emails
+  const fetchScheduledEmails = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}?status=scheduled`);
+      const data = Array.isArray(res.data.emails) ? res.data.emails : [];
+      setScheduledEmails(data);
+    } catch (err) {
+      toast.error('Failed to fetch scheduled emails');
+      setScheduledEmails([]);
+    }
+    setLoading(false);
+  };
+
   // Fetch user profile
   useEffect(() => {
     const fetchProfile = async () => {
@@ -70,6 +90,7 @@ function EmailsPage() {
   useEffect(() => {
     fetchEmails();
     fetchDrafts();
+    fetchScheduledEmails();
   }, []);
 
   useEffect(() => {
@@ -131,8 +152,16 @@ function EmailsPage() {
     e.preventDefault();
     setSavingDraft(true);
     try {
-      await axios.post(API_URL, { ...form, status: 'draft' });
-      toast.success('Draft saved!');
+      if (editDraftId) {
+        // Update draft
+        await axios.put(`${API_URL}/${editDraftId}`, { ...form, status: 'draft' });
+        toast.success('Draft updated!');
+      } else {
+        // Create new draft
+        console.log('Creating new draft:', { ...form, status: 'draft' });
+        await axios.post(API_URL, { ...form, status: 'draft' });
+        toast.success('Draft saved!');
+      }
       setShowSendModal(false);
       setForm({
         from: '',
@@ -143,11 +172,27 @@ function EmailsPage() {
         content: '',
         attachments: []
       });
+      setEditDraftId(null);
       fetchDrafts();
     } catch (err) {
       toast.error('Failed to save draft');
     }
     setSavingDraft(false);
+  };
+
+  // Edit as Draft
+  const handleEditDraft = (draft) => {
+    setForm({
+      from: draft.from,
+      to: draft.to,
+      cc: draft.cc,
+      bcc: draft.bcc,
+      subject: draft.subject,
+      content: draft.content,
+      attachments: draft.attachments || []
+    });
+    setEditDraftId(draft._id);
+    setShowSendModal(true);
   };
 
   // View email details
@@ -171,6 +216,8 @@ function EmailsPage() {
       await axios.delete(`${API_URL}/${id}`);
       toast.success('Email deleted!');
       fetchEmails();
+      fetchDrafts();
+      fetchScheduledEmails();
     } catch (err) {
       toast.error('Failed to delete email');
     }
@@ -185,10 +232,25 @@ function EmailsPage() {
       toast.success('Draft sent!');
       fetchEmails();
       fetchDrafts();
+      fetchScheduledEmails();
     } catch (err) {
       toast.error('Failed to send draft');
     }
     setLoading(false);
+  };
+
+  const handleCloseModal = () => {
+    setShowSendModal(false);
+    setEditDraftId(null);
+    setForm({
+      from: '',
+      to: [{ email: '' }],
+      cc: [],
+      bcc: [],
+      subject: '',
+      content: '',
+      attachments: []
+    });
   };
 
   return (
@@ -308,6 +370,85 @@ function EmailsPage() {
                           size="sm"
                           variant="danger"
                           onClick={() => handleDelete(draft._id)}
+                        >
+                          Delete
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="warning"
+                          className="me-2"
+                          onClick={() => handleEditDraft(draft)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="me-2"
+                          onClick={() => {
+                            setScheduleEmailId(draft._id);
+                            setShowScheduleModal(true);
+                          }}
+                        >
+                          Schedule
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </Table>
+          )}
+        </Tab>
+        <Tab eventKey="scheduled" title="Scheduled Emails">
+          {loading ? (
+            <div className="text-center my-5">
+              <Spinner animation="border" variant="primary" />
+            </div>
+          ) : (
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>To</th>
+                  <th>Subject</th>
+                  <th>Status</th>
+                  <th>Scheduled At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scheduledEmails.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center">No scheduled emails found.</td>
+                  </tr>
+                ) : (
+                  scheduledEmails.map(email => (
+                    <tr key={email._id}>
+                      <td>
+                        {Array.isArray(email.to)
+                          ? email.to.map(t => t.email).join(', ')
+                          : email.to}
+                      </td>
+                      <td>{email.subject}</td>
+                      <td>{email.status}</td>
+                      <td>
+                        {email.scheduledAt
+                          ? new Date(email.scheduledAt).toLocaleString()
+                          : ''}
+                      </td>
+                      <td>
+                        <Button
+                          size="sm"
+                          variant="info"
+                          className="me-2"
+                          onClick={() => handleViewDetails(email._id)}
+                        >
+                          Details
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => handleDelete(email._id)}
                         >
                           Delete
                         </Button>
@@ -599,13 +740,27 @@ function EmailsPage() {
         </Modal.Body>
 
         <Modal.Footer className="border-0 bg-light">
-         <Button
-            variant="success"
-            className="rounded-pill px-4 me-2 shadow-sm"
-            onClick={() => handleSendDraft(selectedEmail._id)}
-          >
-            Send
-          </Button>
+          { selectedEmail && selectedEmail.status !== 'sent' &&
+            <>
+              <Button
+                variant="success"
+                className="rounded-pill px-4 me-2 shadow-sm"
+                onClick={() => handleSendDraft(selectedEmail._id)}
+              >
+                Send
+              </Button>
+              <Button
+                variant="secondary"
+                className="rounded-pill px-4 me-2 shadow-sm"
+                onClick={() => {
+                  setScheduleEmailId(selectedEmail._id);
+                  setShowScheduleModal(true);
+                }}
+              >
+                Schedule
+              </Button>
+            </>
+          }
           <Button
             variant="dark"
             className="rounded-pill px-4"
@@ -614,6 +769,56 @@ function EmailsPage() {
             Close
           </Button>
         </Modal.Footer>
+      </Modal>
+
+      {/* Schedule Email Modal */}
+      <Modal
+        show={showScheduleModal}
+        onHide={() => setShowScheduleModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Schedule Email</Modal.Title>
+        </Modal.Header>
+        <Form
+          onSubmit={async e => {
+            e.preventDefault();
+            setScheduling(true);
+            try {
+              await axios.post(`${API_URL}/${scheduleEmailId}/schedule`, { scheduledAt });
+              toast.success('Email scheduled!');
+              setShowScheduleModal(false);
+              setScheduledAt('');
+              setScheduleEmailId(null);
+              fetchEmails();
+              fetchDrafts();
+              fetchScheduledEmails();
+            } catch (err) {
+              toast.error('Failed to schedule email');
+            }
+            setScheduling(false);
+          }}
+        >
+          <Modal.Body>
+            <Form.Group>
+              <Form.Label>Select Date & Time</Form.Label>
+              <Form.Control
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={e => setScheduledAt(e.target.value)}
+                required
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowScheduleModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" disabled={scheduling}>
+              {scheduling ? <Spinner size="sm" animation="border" /> : 'Schedule'}
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
 
     </div>
