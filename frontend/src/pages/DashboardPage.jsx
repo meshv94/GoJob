@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Spinner, Button, Form, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
-import { FaEnvelopeOpenText, FaUsers, FaKey, FaSave } from 'react-icons/fa';
+import { FaEnvelopeOpenText, FaEnvelope, FaRegClock, FaUsers, FaKey, FaSave } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 // import './DashboardPage.css'; // external custom CSS
 
@@ -24,18 +24,22 @@ function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [emails, groups] = await Promise.all([
-          axios.get('http://localhost:5000/emails'),
+        const [sent, drafts, scheduled, groups] = await Promise.all([
+          axios.get('http://localhost:5000/emails?status=sent'),
+          axios.get('http://localhost:5000/emails?status=draft'),
+          axios.get('http://localhost:5000/emails?status=scheduled'),
           axios.get('http://localhost:5000/groups'),
         ]);
         setStats({
-          emails: Array.isArray(emails.data.emails) ? emails.data.emails.length : 0,
+          sent: Array.isArray(sent.data.emails) ? sent.data.emails.length : 0,
+          drafts: Array.isArray(drafts.data.emails) ? drafts.data.emails.length : 0,
+          scheduled: Array.isArray(scheduled.data.emails) ? scheduled.data.emails.length : 0,
           groups: Array.isArray(groups.data.groups) ? groups.data.groups.length : (
             Array.isArray(groups.data) ? groups.data.length : 0
           ),
         });
       } catch {
-        setStats({ emails: 0, groups: 0 });
+        setStats({ sent: 0, drafts: 0, scheduled: 0, groups: 0 });
       }
     };
     fetchStats();
@@ -99,7 +103,7 @@ function DashboardPage() {
       </div>
 
       <Row>
-        <Col md={4}>
+        <Col md={3}>
           <motion.div
             whileHover={{ scale: 1.04, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
             transition={{ type: "spring", stiffness: 300 }}
@@ -108,12 +112,40 @@ function DashboardPage() {
               <Card.Body className="text-center">
                 <FaEnvelopeOpenText size={48} className="text-primary mb-2" />
                 <Card.Title className="fw-bold">Sent Emails</Card.Title>
-                <Card.Text className="stat-number">{stats.emails}</Card.Text>
+                <Card.Text className="stat-number">{stats.sent}</Card.Text>
               </Card.Body>
             </Card>
           </motion.div>
         </Col>
-        <Col md={4}>
+        <Col md={3}>
+          <motion.div
+            whileHover={{ scale: 1.04, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <Card className="mb-3 shadow border-0" style={{ borderRadius: 18 }}>
+              <Card.Body className="text-center">
+                <FaEnvelope size={48} className="text-info mb-2" />
+                <Card.Title className="fw-bold">Draft Emails</Card.Title>
+                <Card.Text className="stat-number">{stats.drafts}</Card.Text>
+              </Card.Body>
+            </Card>
+          </motion.div>
+        </Col>
+        <Col md={3}>
+          <motion.div
+            whileHover={{ scale: 1.04, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <Card className="mb-3 shadow border-0" style={{ borderRadius: 18 }}>
+              <Card.Body className="text-center">
+                <FaRegClock size={48} className="text-warning mb-2" />
+                <Card.Title className="fw-bold">Scheduled Emails</Card.Title>
+                <Card.Text className="stat-number">{stats.scheduled}</Card.Text>
+              </Card.Body>
+            </Card>
+          </motion.div>
+        </Col>
+        <Col md={3}>
           <motion.div
             whileHover={{ scale: 1.04, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
             transition={{ type: "spring", stiffness: 300 }}

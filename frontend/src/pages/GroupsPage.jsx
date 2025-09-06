@@ -159,7 +159,7 @@ function GroupsPage() {
                   <td>{group.description || '-'}</td>
                   <td>{group.tags && group.tags.length > 0 ? group.tags.join(', ') : '-'}</td>
                   <td>
-                    <Button size="sm" variant="info" className="me-2" onClick={() => handleEdit(group)}>
+                    <Button size="sm" variant="warning" className="me-2" onClick={() => handleEdit(group)}>
                       Edit
                     </Button>
                     <Button size="sm" variant="danger" onClick={() => handleDelete(group._id)}>

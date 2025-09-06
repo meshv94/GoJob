@@ -68,6 +68,10 @@ router.post('/', auth, validateEmail.create, async (req, res) => {
     // Validation is now handled by middleware
     const { from, to, cc, bcc, subject, content, template, attachments, scheduledAt } = req.body;
     
+    if(from && from !== req.user.email) {
+      return res.status(400).json({ success: false, message: 'From address must match your registered email' });
+    }
+    
     // Check if user has quota
     const user = await User.findById(req.user._id);
     if (user.emailQuota.used >= user.emailQuota.monthly) {

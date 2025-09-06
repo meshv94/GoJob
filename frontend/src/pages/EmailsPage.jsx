@@ -88,12 +88,6 @@ function EmailsPage() {
   }, []);
 
   useEffect(() => {
-    fetchEmails();
-    fetchDrafts();
-    fetchScheduledEmails();
-  }, []);
-
-  useEffect(() => {
     if (user) {
       setForm(f => ({ ...f, from: user.email }));
     }
@@ -121,7 +115,7 @@ function EmailsPage() {
       toast.success('Email sent!');
       setShowSendModal(false);
       setForm({
-        from: '',
+        from: user.email,
         to: [{ email: '' }],
         cc: [],
         bcc: [],
@@ -164,7 +158,7 @@ function EmailsPage() {
       }
       setShowSendModal(false);
       setForm({
-        from: '',
+        from: user.email,
         to: [{ email: '' }],
         cc: [],
         bcc: [],
@@ -215,9 +209,7 @@ function EmailsPage() {
     try {
       await axios.delete(`${API_URL}/${id}`);
       toast.success('Email deleted!');
-      fetchEmails();
-      fetchDrafts();
-      fetchScheduledEmails();
+      handleFetchEmailsBasedOnTab(tab); // <-- Refresh based on current tab
     } catch (err) {
       toast.error('Failed to delete email');
     }
@@ -230,9 +222,8 @@ function EmailsPage() {
     try {
       await axios.post(`${API_URL}/${id}/send`);
       toast.success('Draft sent!');
-      fetchEmails();
-      fetchDrafts();
-      fetchScheduledEmails();
+      setShowDetailModal(false); // <-- Close the details modal here
+      handleFetchEmailsBasedOnTab(tab); // <-- Refresh based on current tab
     } catch (err) {
       toast.error('Failed to send draft');
     }
@@ -243,7 +234,7 @@ function EmailsPage() {
     setShowSendModal(false);
     setEditDraftId(null);
     setForm({
-      from: '',
+      from: user.email,
       to: [{ email: '' }],
       cc: [],
       bcc: [],
@@ -252,6 +243,20 @@ function EmailsPage() {
       attachments: []
     });
   };
+
+  const handleFetchEmailsBasedOnTab = (tab) => {
+    if (tab === 'sent') fetchEmails();
+    if (tab === 'drafts') fetchDrafts();
+    if (tab === 'scheduled') fetchScheduledEmails();
+  }
+
+  useEffect(() => {
+    handleFetchEmailsBasedOnTab(tab);
+  }, [tab]);
+
+  useEffect(() => {
+    setLoading(true);
+  }, [tab]);
 
   return (
     <div>
@@ -296,7 +301,7 @@ function EmailsPage() {
                       <td>
                         <Button
                           size="sm"
-                          variant="info"
+                          variant="success"
                           className="me-2"
                           onClick={() => handleViewDetails(email._id)}
                         >
@@ -360,7 +365,7 @@ function EmailsPage() {
                         </Button> */}
                         <Button
                           size="sm"
-                          variant="info"
+                          variant="success"
                           className="me-2"
                           onClick={() => handleViewDetails(draft._id)}
                         >
@@ -369,6 +374,7 @@ function EmailsPage() {
                         <Button
                           size="sm"
                           variant="danger"
+                          className="me-2"
                           onClick={() => handleDelete(draft._id)}
                         >
                           Delete
@@ -380,17 +386,6 @@ function EmailsPage() {
                           onClick={() => handleEditDraft(draft)}
                         >
                           Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="me-2"
-                          onClick={() => {
-                            setScheduleEmailId(draft._id);
-                            setShowScheduleModal(true);
-                          }}
-                        >
-                          Schedule
                         </Button>
                       </td>
                     </tr>
@@ -439,7 +434,7 @@ function EmailsPage() {
                       <td>
                         <Button
                           size="sm"
-                          variant="info"
+                          variant="success"
                           className="me-2"
                           onClick={() => handleViewDetails(email._id)}
                         >

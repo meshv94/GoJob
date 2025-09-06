@@ -10,6 +10,7 @@ import GroupsPage from './pages/GroupsPage';
 import SettingsPage from './pages/SettingsPage';
 import { Modal, Button } from 'react-bootstrap';
 import axios from 'axios';
+import { CircleLoader } from 'react-spinners';
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -17,6 +18,8 @@ function App() {
   });
   const [hasSmtp, setHasSmtp] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [globalError, setGlobalError] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('darkMode', darkMode);
@@ -29,11 +32,12 @@ function App() {
         const token = localStorage.getItem('token');
         if (!token) return;
         const data = await axios.get('http://localhost:5000/auth/profile');
-        // console.log("getting", data.data.user.hasSMTP)
         setHasSmtp(data.data.user.hasSMTP);
       } catch (error) {
+        setGlobalError(true); // <-- set error if backend fails
         console.error('Error fetching profile:', error);
       }
+      setProfileLoading(false); // <-- set loading to false after fetch
     };
     fetchProfile();
   }, []);
@@ -65,26 +69,42 @@ function App() {
     />
   );
 
+  if (globalError) {
+    return (
+      <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+        <h2 className="text-danger mb-3">🚨 Something went wrong</h2>
+        <p>We couldn't connect to the backend server.<br />Please try again later.</p>
+        <Button variant="primary" onClick={() => window.location.reload()}>Reload</Button>
+      </div>
+    );
+  }
+
   return (
     <Router>
-      <Switch>
-        <Route path="/" exact component={LoginPage} />
-        <Route path="/register" component={RegisterPage} />
-        <div className={`d-flex ${darkMode ? 'bg-dark text-light' : ''}`}>
-          <Sidebar onLogout={handleLogout} darkMode={darkMode} setDarkMode={setDarkMode} />
-          <div className="flex-grow-1 p-4">
-            <PrivateRoute path="/dashboard" component={DashboardPage} />
-            <ProtectedRoute path="/emails" component={EmailsPage} />
-            <ProtectedRoute path="/groups" component={GroupsPage} />
-            <PrivateRoute
-              path="/settings"
-              render={(props) => (
-                <SettingsPage {...props} darkMode={darkMode} setDarkMode={setDarkMode} />
-              )}
-            />
-          </div>
+      {profileLoading ? (
+        <div className="d-flex justify-content-center my-4">
+            <CircleLoader color="#007bff" size={80} />
         </div>
-      </Switch>
+      ) : (
+        <Switch>
+          <Route path="/" exact component={LoginPage} />
+          <Route path="/register" component={RegisterPage} />
+          <div className={`d-flex ${darkMode ? 'bg-dark text-light' : ''}`}>
+            <Sidebar onLogout={handleLogout} darkMode={darkMode} setDarkMode={setDarkMode} />
+            <div className="flex-grow-1 p-4">
+              <PrivateRoute path="/dashboard" component={DashboardPage} />
+              <ProtectedRoute path="/emails" component={EmailsPage} />
+              <ProtectedRoute path="/groups" component={GroupsPage} />
+              <PrivateRoute
+                path="/settings"
+                render={(props) => (
+                  <SettingsPage {...props} darkMode={darkMode} setDarkMode={setDarkMode} />
+                )}
+              />
+            </div>
+          </div>
+        </Switch>
+      )}
 
       {/* Warning Modal */}
       <Modal show={showWarning} onHide={() => setShowWarning(false)} centered size="lg">

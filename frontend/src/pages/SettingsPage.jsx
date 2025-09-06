@@ -147,9 +147,6 @@ function SettingsPage({ darkMode, setDarkMode }) {
                       {user ? getInitials(user.name, user.email) : <FaUserCircle />}
                     </div>
                     <div>
-                      <div className="fw-bold" style={{ fontSize: 20 }}>
-                        {user ? user.name || 'No Name' : '...'}
-                      </div>
                       <div className="text-muted d-flex align-items-center" style={{ fontSize: 16 }}>
                         <FaEnvelope className="me-1" /> {user ? user.email : '...'}
                       </div>
