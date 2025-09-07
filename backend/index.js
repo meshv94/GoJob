@@ -6,7 +6,12 @@ import cors from "cors";
 import connectDB from "./src/config/database.js";
 import routes from "./src/routes/index.js";
 import config, { validateConfig } from "./src/config/config.js";
-import emailQueue from './src/jobs/emailQueue.js';
+import path from 'path';
+import { fileURLToPath } from "url";
+
+// Recreate __dirname and __filename in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
 // app.use(dotenv.config())
@@ -44,6 +49,12 @@ app.use((req, res, next) => {
   // console.log('Query:', req.query);
   next();
 });
+
+// Serve Uploads folder as static
+console.log("Serving uploads from:", path.join(__dirname, 'Uploads'));
+console.log("Serving uploads from:", `${__dirname}/Uploads`);
+
+app.use('/uploads', express.static(path.join(__dirname, 'Uploads')));
 
 // Routes
 app.use('/', routes);

@@ -2,6 +2,7 @@ import express from 'express';
 import authRoutes from './auth.js';
 import groupRoutes from './groups.js';
 import emailRoutes from './emails.js';
+import filesRouter from './files.js'
 
 const router = express.Router();
 
@@ -42,5 +43,6 @@ router.get('/api/v1', (req, res) => {
 router.use('/auth', authRoutes);
 router.use('/groups', groupRoutes);
 router.use('/emails', emailRoutes);
+router.use('/files', filesRouter);
 
 export default router;

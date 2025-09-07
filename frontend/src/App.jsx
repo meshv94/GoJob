@@ -11,6 +11,7 @@ import SettingsPage from './pages/SettingsPage';
 import { Modal, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { CircleLoader } from 'react-spinners';
+import FilesPage from "./pages/FilesPage";
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -96,6 +97,7 @@ function App() {
               <PrivateRoute path="/dashboard" component={DashboardPage} />
               <ProtectedRoute path="/emails" component={EmailsPage} />
               <ProtectedRoute path="/groups" component={GroupsPage} />
+              <ProtectedRoute path="/files" component={FilesPage} />
               <PrivateRoute
                 path="/settings"
                 render={(props) => (
