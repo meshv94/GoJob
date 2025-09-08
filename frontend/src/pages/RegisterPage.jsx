@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { register, sendOtp, verifyOtp } from '../api/auth';
 import { useHistory } from 'react-router-dom';
 import { Card, Button, Form, Alert, Container, Row, Col } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import { CircleLoader } from 'react-spinners';
+import axios from 'axios';
 
 function RegisterPage() {
   const [step, setStep] = useState(1);
@@ -11,7 +12,18 @@ function RegisterPage() {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(600); // 600 seconds = 10 minutes
+  const [canResend, setCanResend] = useState(false);
   const history = useHistory();
+
+  useEffect(() => {
+    if (otpTimer > 0) {
+      const interval = setInterval(() => setOtpTimer(t => t - 1), 1000);
+      return () => clearInterval(interval);
+    } else {
+      setCanResend(true);
+    }
+  }, [otpTimer]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -19,7 +31,6 @@ function RegisterPage() {
     setLoading(true);
     try {
       await register(form);
-      await sendOtp(form.email);
       setStep(2);
     } catch (err) {
       setError(err.message || 'Registration failed');
@@ -36,6 +47,20 @@ function RegisterPage() {
       history.push('/');
     } catch (err) {
       setError(err.message || 'OTP verification failed');
+    }
+    setLoading(false);
+  };
+
+  const handleResendOtp = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      await axios.post('http://localhost:5000/auth/send-otp', { email: form.email });
+      // await sendOtp(form.email);
+      setOtpTimer(600); // Reset timer
+      setCanResend(false);
+    } catch (err) {
+      setError(err.message || 'Failed to resend OTP');
     }
     setLoading(false);
   };
@@ -125,6 +150,19 @@ function RegisterPage() {
                       Verify OTP
                     </Button>
                   </Form>
+                )}
+                {step === 2 && (
+                  <div className="text-center mt-3">
+                    {otpTimer > 0 ? (
+                      <div>
+                        <span>OTP expires in: {Math.floor(otpTimer / 60)}:{String(otpTimer % 60).padStart(2, '0')}</span>
+                      </div>
+                    ) : (
+                      <Button onClick={handleResendOtp} disabled={!canResend}>
+                        Resend OTP
+                      </Button>
+                    )}
+                  </div>
                 )}
                 <div className="text-center mt-3">
                   <a href="/">Already have an account? Login</a>

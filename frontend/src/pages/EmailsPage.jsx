@@ -155,6 +155,7 @@ function EmailsPage() {
   const handleSaveDraft = async (e) => {
     e.preventDefault();
     setSavingDraft(true);
+    setLoading(true);
     try {
       if (editDraftId) {
         // Update draft
@@ -167,7 +168,15 @@ function EmailsPage() {
         toast.success('Draft saved!');
       }
       setShowSendModal(false);
-      setForm({ ...form, attachments: [] });
+      setForm({
+        from: user.email,
+        to: [{ email: '' }],
+        cc: [],
+        bcc: [],
+        subject: '',
+        content: '',
+        attachments: []
+      });
       setSelectedAttachments([]);
       setEditDraftId(null);
       fetchDrafts();
@@ -175,6 +184,7 @@ function EmailsPage() {
       toast.error('Failed to save draft');
     }
     setSavingDraft(false);
+    setLoading(false);
   };
 
   // Edit as Draft
@@ -228,7 +238,15 @@ function EmailsPage() {
       toast.success('Draft sent!');
       setShowDetailModal(false); // <-- Close the details modal here
       handleFetchEmailsBasedOnTab(tab); // <-- Refresh based on current tab
-      setForm({ ...form, attachments: [] });
+      setForm({
+      from: user.email,
+      to: [{ email: '' }],
+      cc: [],
+      bcc: [],
+      subject: '',
+      content: '',
+      attachments: []
+    });
     } catch (err) {
       toast.error('Failed to send draft');
     }
@@ -864,19 +882,20 @@ function EmailsPage() {
           onSubmit={async e => {
             e.preventDefault();
             setScheduling(true);
+            setLoading(true);
             try {
               await axios.post(`${API_URL}/${scheduleEmailId}/schedule`, { scheduledAt });
               toast.success('Email scheduled!');
               setShowScheduleModal(false);
               setScheduledAt('');
               setScheduleEmailId(null);
-              fetchEmails();
-              fetchDrafts();
-              fetchScheduledEmails();
+              handleFetchEmailsBasedOnTab(tab);
+              setForm({ ...form, attachments: [] });
             } catch (err) {
               toast.error('Failed to schedule email');
             }
             setScheduling(false);
+            setLoading(false);
           }}
         >
           <Modal.Body>
