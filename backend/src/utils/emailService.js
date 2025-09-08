@@ -60,6 +60,7 @@ class EmailService {
         console.log('Sending email to:', email.to);
         console.log('Mail options:', mailOptions);
         const result = await transporter.sendMail(mailOptions);
+        console.log('Email sent:', result);
         results.push({
           email: email.to,
           success: true,

@@ -51,9 +51,6 @@ app.use((req, res, next) => {
 });
 
 // Serve Uploads folder as static
-console.log("Serving uploads from:", path.join(__dirname, 'Uploads'));
-console.log("Serving uploads from:", `${__dirname}/Uploads`);
-
 app.use('/uploads', express.static(path.join(__dirname, 'Uploads')));
 
 // Routes
@@ -98,4 +95,5 @@ app.listen(config.port, () => {
   console.log(`📚 API docs: http://localhost:${config.port}/api/v1`);
   console.log(`📊 MongoDB: ${config.mongoUri}`);
   console.log(`📧 SMTP: ${config.smtp.host}:${config.smtp.port}`);
+  console.log("📂 Serving uploads from:", path.join(__dirname, 'Uploads'));
 });

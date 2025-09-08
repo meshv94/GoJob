@@ -31,6 +31,8 @@ function EmailsPage() {
   const [scheduledAt, setScheduledAt] = useState('');
   const [scheduling, setScheduling] = useState(false);
   const [scheduledEmails, setScheduledEmails] = useState([]);
+  const [files, setFiles] = useState([]);
+  const [selectedAttachments, setSelectedAttachments] = useState([]);
 
   // Fetch emails
   const fetchEmails = async () => {
@@ -106,23 +108,31 @@ function EmailsPage() {
     fetchGroups();
   }, []);
 
+  // Fetch files
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/files', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setFiles(res.data.files || []);
+      } catch (err) {
+        setFiles([]);
+      }
+    };
+    fetchFiles();
+  }, []);
+
   // Send email
   const handleSend = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(API_URL, form);
+      await axios.post(API_URL, { ...form, attachments: selectedAttachments });
       toast.success('Email sent!');
       setShowSendModal(false);
-      setForm({
-        from: user.email,
-        to: [{ email: '' }],
-        cc: [],
-        bcc: [],
-        subject: '',
-        content: '',
-        attachments: []
-      });
+      setForm({ ...form, attachments: [] });
+      setSelectedAttachments([]);
       fetchEmails();
     } catch (err) {
       toast.error('Failed to send email');
@@ -148,24 +158,17 @@ function EmailsPage() {
     try {
       if (editDraftId) {
         // Update draft
-        await axios.put(`${API_URL}/${editDraftId}`, { ...form, status: 'draft' });
+        await axios.put(`${API_URL}/${editDraftId}`, { ...form, attachments: selectedAttachments, status: 'draft' });
         toast.success('Draft updated!');
       } else {
         // Create new draft
         console.log('Creating new draft:', { ...form, status: 'draft' });
-        await axios.post(API_URL, { ...form, status: 'draft' });
+        await axios.post(API_URL, { ...form, attachments: selectedAttachments, status: 'draft' });
         toast.success('Draft saved!');
       }
       setShowSendModal(false);
-      setForm({
-        from: user.email,
-        to: [{ email: '' }],
-        cc: [],
-        bcc: [],
-        subject: '',
-        content: '',
-        attachments: []
-      });
+      setForm({ ...form, attachments: [] });
+      setSelectedAttachments([]);
       setEditDraftId(null);
       fetchDrafts();
     } catch (err) {
@@ -185,6 +188,7 @@ function EmailsPage() {
       content: draft.content,
       attachments: draft.attachments || []
     });
+    setSelectedAttachments(draft.attachments || []);
     setEditDraftId(draft._id);
     setShowSendModal(true);
   };
@@ -224,6 +228,7 @@ function EmailsPage() {
       toast.success('Draft sent!');
       setShowDetailModal(false); // <-- Close the details modal here
       handleFetchEmailsBasedOnTab(tab); // <-- Refresh based on current tab
+      setForm({ ...form, attachments: [] });
     } catch (err) {
       toast.error('Failed to send draft');
     }
@@ -630,6 +635,61 @@ function EmailsPage() {
                 className="shadow-sm"
               />
             </Form.Group>
+
+            {/* Attachments */}
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-bold text-muted">
+                <i className="bi bi-paperclip me-2"></i> Attach Files
+              </Form.Label>
+              <div className="border rounded p-2 bg-light" style={{ maxHeight: 180, overflowY: 'auto' }}>
+                {files.length === 0 ? (
+                  <span className="text-muted">No files uploaded.</span>
+                ) : (
+                  files.map(file => (
+                    <Form.Check
+                      key={file._id}
+                      type="checkbox"
+                      id={`attach-${file._id}`}
+                      label={file.originalName}
+                      checked={selectedAttachments.includes(file._id)}
+                      onChange={e => {
+                        setSelectedAttachments(prev =>
+                          e.target.checked
+                            ? [...prev, file._id]
+                            : prev.filter(id => id !== file._id)
+                        );
+                      }}
+                    />
+                  )))
+                }
+              </div>
+              {/* Show selected attachments with remove option */}
+              {selectedAttachments.length > 0 && (
+                <div className="mt-2">
+                  <div className="fw-bold mb-1">Selected Attachments:</div>
+                  {selectedAttachments.map(id => {
+                    const file = files.find(f => f._id === id);
+                    if (!file) return null;
+                    return (
+                      <span key={id} className="badge bg-secondary me-2">
+                        {file.originalName}
+                        <Button
+                          size="sm"
+                          variant="link"
+                          className="text-danger ms-1 p-0"
+                          onClick={() =>
+                            setSelectedAttachments(prev => prev.filter(fid => fid !== id))
+                          }
+                          title="Remove"
+                        >
+                          &times;
+                        </Button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </Form.Group>
           </Modal.Body>
 
           {/* Footer */}
@@ -726,6 +786,31 @@ function EmailsPage() {
                 className="border rounded p-3 bg-white shadow-sm email-body"
                 dangerouslySetInnerHTML={{ __html: selectedEmail.content }}
               />
+
+              {/* Attachments */}
+              {selectedEmail.attachments && selectedEmail.attachments.length > 0 && (
+                <div className="mt-3">
+                  <h6 className="fw-bold mb-2">Attachments</h6>
+                  <div>
+                    {selectedEmail.attachments.map(id => {
+                      const file = files.find(f => f._id === id);
+                      if (!file) return null;
+                      return (
+                        <a
+                          key={id}
+                          href={`http://localhost:5000/uploads/${file.path}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="badge bg-info text-dark me-2"
+                          style={{ textDecoration: 'none' }}
+                        >
+                          {file.originalName}
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="d-flex justify-content-center align-items-center py-4">

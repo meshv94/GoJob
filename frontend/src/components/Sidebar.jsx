@@ -8,7 +8,7 @@ const Sidebar = ({ onLogout, darkMode, setDarkMode }) => {
     { to: '/dashboard', icon: <FaTachometerAlt />, label: 'Dashboard' },
     { to: '/emails', icon: <FaEnvelope />, label: 'Emails' },
     { to: '/groups', icon: <FaUsers />, label: 'Groups' },
-    { to: '/templates', icon: <FaLayerGroup />, label: 'Templates' },
+    // { to: '/templates', icon: <FaLayerGroup />, label: 'Templates' },
     { to: '/files', icon: <FaFileAlt />, label: 'Files' },
     { to: '/settings', icon: <FaCogs />, label: 'Settings' },
   ];

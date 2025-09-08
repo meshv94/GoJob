@@ -33,10 +33,8 @@ const emailSchema = new mongoose.Schema({
     ref: 'Template'
   },
   attachments: [{
-    filename: String,
-    path: String,
-    mimetype: String,
-    size: Number
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'File'
   }],
   status: {
     type: String,

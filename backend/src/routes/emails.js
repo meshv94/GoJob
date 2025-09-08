@@ -6,6 +6,8 @@ import { validateEmail } from '../middleware/validate.js';
 import emailService from '../utils/emailService.js';
 import User from '../models/User.js';
 import emailQueue from '../jobs/emailQueue.js';
+import File from '../models/File.js'; // Add this import
+import path from 'path';
 
 const router = express.Router();
 
@@ -65,25 +67,38 @@ router.get('/:id', auth, async (req, res) => {
 // Create new email (draft)
 router.post('/', auth, validateEmail.create, async (req, res) => {
   try {
-    // Validation is now handled by middleware
     const { from, to, cc, bcc, subject, content, template, attachments, scheduledAt } = req.body;
-    
-    if(from && from !== req.user.email) {
+
+    if (from && from !== req.user.email) {
       return res.status(400).json({ success: false, message: 'From address must match your registered email' });
     }
-    
+
+    // Validate attachments
+    let validAttachments = [];
+    if (attachments && attachments.length > 0) {
+      const files = await File.find({
+        _id: { $in: attachments },
+        userId: req.user._id,
+        category: 'attachment'
+      });
+      if (files.length !== attachments.length) {
+        return res.status(400).json({ success: false, message: 'One or more attachments are invalid or not owned by you.' });
+      }
+      validAttachments = attachments;
+    }
+
     // Check if user has quota
     const user = await User.findById(req.user._id);
     if (user.emailQuota.used >= user.emailQuota.monthly) {
       return res.status(403).json({ success: false, message: 'Monthly email quota exceeded' });
     }
-    
+
     // Determine status
     let status = 'draft';
     if (scheduledAt) {
       status = 'scheduled';
     }
-    
+
     const email = new Email({
       userId: req.user._id,
       from,
@@ -93,14 +108,14 @@ router.post('/', auth, validateEmail.create, async (req, res) => {
       subject,
       content,
       template,
-      attachments: attachments || [],
+      attachments: validAttachments,
       status,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null
     });
-    
+
     await email.save();
-    
-    res.status(201).json({ 
+
+    res.status(201).json({
       success: true,
       message: 'Email created successfully',
       email
@@ -114,27 +129,33 @@ router.post('/', auth, validateEmail.create, async (req, res) => {
 // Send email immediately
 router.post('/:id/send', auth, async (req, res) => {
   try {
-    const email = await Email.findOne({ 
-      _id: req.params.id, 
+    const email = await Email.findOne({
+      _id: req.params.id,
       userId: req.user._id,
       status: { $in: ['draft', 'scheduled'] }
     });
-    
+
     if (!email) {
       return res.status(404).json({ success: false, message: 'Email not found or cannot be sent' });
     }
-    
+
     // Check quota
     const user = await User.findById(req.user._id);
     const recipientCount = email.to.length;
     if (user.emailQuota.used + recipientCount > user.emailQuota.monthly) {
       return res.status(403).json({ success: false, message: 'Sending this email would exceed your monthly quota' });
     }
-    
-    // Update status
-    email.status = 'sending';
-    await email.save();
-    
+
+    // Fetch attachment file info
+    let attachmentFiles = [];
+    if (email.attachments && email.attachments.length > 0) {
+      attachmentFiles = await File.find({
+        _id: { $in: email.attachments },
+        userId: req.user._id,
+        category: 'attachment'
+      });
+    }
+
     // Prepare email data for sending
     const emailData = email.to.map(recipient => ({
       from: email.from,
@@ -143,12 +164,15 @@ router.post('/:id/send', auth, async (req, res) => {
       bcc: email.bcc,
       subject: email.subject,
       content: email.content,
-      attachments: email.attachments
+      attachments: attachmentFiles.map(f => ({
+        filename: f.originalName,
+        path: path.join(process.cwd(), 'Uploads', f.path)
+      }))
     }));
-    
+
     // Send emails
     const results = await emailService.sendBulkEmails(emailData, req.user._id);
-    
+
     // Update delivery status
     email.deliveryStatus = results.map(result => ({
       email: result.email,
@@ -156,17 +180,17 @@ router.post('/:id/send', auth, async (req, res) => {
       sentAt: result.sentAt,
       failureReason: result.error || null
     }));
-    
+
     email.status = 'sent';
     email.sentAt = new Date();
-    
+
     // Update user quota
     user.emailQuota.used += recipientCount;
     await user.save();
-    
+
     await email.save();
-    
-    res.json({ 
+
+    res.json({
       success: true,
       message: 'Email sent successfully',
       results,
@@ -182,17 +206,31 @@ router.post('/:id/send', auth, async (req, res) => {
 router.put('/:id', auth, validateEmail.update, async (req, res) => {
   try {
     const { from, to, cc, bcc, subject, content, template, attachments, scheduledAt } = req.body;
-    
-    const email = await Email.findOne({ 
-      _id: req.params.id, 
+
+    const email = await Email.findOne({
+      _id: req.params.id,
       userId: req.user._id,
       status: { $in: ['draft', 'scheduled'] }
     });
-    
+
     if (!email) {
       return res.status(404).json({ success: false, message: 'Email not found or cannot be updated' });
     }
-    
+
+    // Validate attachments
+    let validAttachments = [];
+    if (attachments && attachments.length > 0) {
+      const files = await File.find({
+        _id: { $in: attachments },
+        userId: req.user._id,
+        category: 'attachment'
+      });
+      if (files.length !== attachments.length) {
+        return res.status(400).json({ success: false, message: 'One or more attachments are invalid or not owned by you.' });
+      }
+      validAttachments = attachments;
+    }
+
     // Update fields
     if (from !== undefined) email.from = from;
     if (to !== undefined) email.to = to;
@@ -201,15 +239,15 @@ router.put('/:id', auth, validateEmail.update, async (req, res) => {
     if (subject !== undefined) email.subject = subject;
     if (content !== undefined) email.content = content;
     if (template !== undefined) email.template = template;
-    if (attachments !== undefined) email.attachments = attachments;
+    if (attachments !== undefined) email.attachments = validAttachments;
     if (scheduledAt !== undefined) {
       email.scheduledAt = new Date(scheduledAt);
       email.status = scheduledAt ? 'scheduled' : 'draft';
     }
-    
+
     await email.save();
-    
-    res.json({ 
+
+    res.json({
       success: true,
       message: 'Email updated successfully',
       email

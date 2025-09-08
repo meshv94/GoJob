@@ -127,13 +127,12 @@ export const emailSchemas = {
     }),
     template: Joi.string().optional(),
     attachments: Joi.array().items(
-      Joi.object({
-        filename: Joi.string().required(),
-        path: Joi.string().required(),
-        mimetype: Joi.string().optional(),
-        size: Joi.number().integer().min(0).optional()
-      })
-    ).optional(),
+    Joi.string().length(24).hex().required().messages({
+      'string.length': 'Attachment ID must be 24 characters',
+      'string.hex': 'Attachment ID must be a valid hex string',
+      'any.required': 'Attachment ID is required'
+    })
+  ).optional(),
     scheduledAt: Joi.date().iso().optional()
   }),
 
@@ -171,11 +170,10 @@ export const emailSchemas = {
     }),
     template: Joi.string().optional(),
     attachments: Joi.array().items(
-      Joi.object({
-        filename: Joi.string().required(),
-        path: Joi.string().required(),
-        mimetype: Joi.string().optional(),
-        size: Joi.number().integer().min(0).optional()
+      Joi.string().length(24).hex().required().messages({
+        'string.length': 'Attachment ID must be 24 characters',
+        'string.hex': 'Attachment ID must be a valid hex string',
+        'any.required': 'Attachment ID is required'
       })
     ).optional(),
     scheduledAt: Joi.date().iso().optional()
