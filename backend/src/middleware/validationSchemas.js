@@ -131,7 +131,7 @@ export const emailSchemas = {
       'string.length': 'Attachment ID must be 24 characters',
       'string.hex': 'Attachment ID must be a valid hex string',
       'any.required': 'Attachment ID is required'
-    })
+    }).optional()
   ).optional(),
     scheduledAt: Joi.date().iso().optional()
   }),
@@ -174,7 +174,7 @@ export const emailSchemas = {
         'string.length': 'Attachment ID must be 24 characters',
         'string.hex': 'Attachment ID must be a valid hex string',
         'any.required': 'Attachment ID is required'
-      })
+      }).optional()
     ).optional(),
     scheduledAt: Joi.date().iso().optional()
   }),
