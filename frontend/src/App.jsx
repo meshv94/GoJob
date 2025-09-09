@@ -19,7 +19,7 @@ function App() {
   });
   const [hasSmtp, setHasSmtp] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
-  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [globalError, setGlobalError] = useState(false);
 
   useEffect(() => {
@@ -48,6 +48,10 @@ function App() {
     console.log("hasSmtp", hasSmtp);
     console.log("showWarning", showWarning)
   }, [hasSmtp]);
+
+  useEffect(() => {
+    localStorage.getItem('token') ? setProfileLoading(true) : setProfileLoading(false);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
