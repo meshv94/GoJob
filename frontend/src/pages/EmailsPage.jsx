@@ -128,7 +128,8 @@ function EmailsPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(API_URL, { ...form, attachments: selectedAttachments });
+      const htmlContent = generateStyledHtml(form.content);
+      await axios.post(API_URL, { ...form, content: htmlContent, attachments: selectedAttachments });
       toast.success('Email sent!');
       setShowSendModal(false);
       setForm({ ...form, attachments: [] });
@@ -157,14 +158,15 @@ function EmailsPage() {
     setSavingDraft(true);
     setLoading(true);
     try {
+      const htmlContent = generateStyledHtml(form.content);
       if (editDraftId) {
         // Update draft
-        await axios.put(`${API_URL}/${editDraftId}`, { ...form, attachments: selectedAttachments, status: 'draft' });
+        await axios.put(`${API_URL}/${editDraftId}`, { ...form, content: htmlContent, attachments: selectedAttachments, status: 'draft' });
         toast.success('Draft updated!');
       } else {
         // Create new draft
         console.log('Creating new draft:', { ...form, status: 'draft' });
-        await axios.post(API_URL, { ...form, attachments: selectedAttachments, status: 'draft' });
+        await axios.post(API_URL, { ...form, content: htmlContent, attachments: selectedAttachments, status: 'draft' });
         toast.success('Draft saved!');
       }
       setShowSendModal(false);
@@ -922,6 +924,63 @@ function EmailsPage() {
 
     </div>
   );
+}
+
+function generateStyledHtml(text) {
+  // Escape HTML special characters
+  const escapeHtml = str =>
+    str.replace(/&/g, "&amp;")
+       .replace(/</g, "&lt;")
+       .replace(/>/g, "&gt;")
+       .replace(/"/g, "&quot;")
+       .replace(/'/g, "&#039;");
+
+  // Convert line breaks to <p> tags
+  const paragraphs = escapeHtml(text)
+    .split(/\n{2,}/) // Split by double line breaks for paragraphs
+    .map(para => `<p style="margin:0 0 12px 0;font-size:1rem;line-height:1.7;font-family:'Segoe UI',Arial,sans-serif;color:#222;">${para.replace(/\n/g, '<br/>')}</p>`)
+    .join('');
+
+  // Responsive styles with media queries
+  const responsiveStyle = `
+    <style>
+      .email-responsive-container {
+        background: #f8fafc;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(44,62,80,0.08);
+        font-family: 'Segoe UI', Arial, sans-serif;
+        max-width: 700px;
+        margin: auto;
+      }
+      @media (max-width: 900px) {
+        .email-responsive-container {
+          padding: 16px;
+          max-width: 98vw;
+        }
+        .email-responsive-container p {
+          font-size: 0.95rem;
+        }
+      }
+      @media (max-width: 600px) {
+        .email-responsive-container {
+          padding: 8px;
+          border-radius: 6px;
+        }
+        .email-responsive-container p {
+          font-size: 0.92rem;
+        }
+      }
+    </style>
+  `;
+
+  // Wrap with responsive container
+  return `
+    ${responsiveStyle}
+    <div class="email-responsive-container">
+      ${paragraphs}
+    </div>
+  `;
 }
 
 export default EmailsPage;
