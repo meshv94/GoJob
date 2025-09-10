@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { register, sendOtp, verifyOtp } from '../api/auth';
+import { register, verifyOtp } from '../api/auth';
 import { useHistory } from 'react-router-dom';
 import { Card, Button, Form, Alert, Container, Row, Col } from 'react-bootstrap';
 import { motion } from 'framer-motion';

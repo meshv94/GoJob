@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Switch, Route, useHistory } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -35,6 +35,10 @@ function App() {
         const data = await axios.get('http://localhost:5000/auth/profile');
         setHasSmtp(data.data.user.hasSMTP);
       } catch (error) {
+        if(error.response && error.response.status === 401) {
+          // Unauthorized, token might be invalid
+          handleLogout()
+        }
         setGlobalError(true); // <-- set error if backend fails
         console.error('Error fetching profile:', error);
       }
@@ -44,10 +48,10 @@ function App() {
   }, []);
 
   //Logs 
-  useEffect(()=>{
-    console.log("hasSmtp", hasSmtp);
-    console.log("showWarning", showWarning)
-  }, [hasSmtp]);
+  // useEffect(()=>{
+  //   console.log("hasSmtp", hasSmtp);
+  //   console.log("showWarning", showWarning)
+  // }, [hasSmtp]);
 
   useEffect(() => {
     localStorage.getItem('token') ? setProfileLoading(true) : setProfileLoading(false);
@@ -98,10 +102,15 @@ function App() {
           <div className={`d-flex ${darkMode ? 'bg-dark text-light' : ''}`}>
             <Sidebar onLogout={handleLogout} darkMode={darkMode} setDarkMode={setDarkMode} />
             <div className="flex-grow-1 p-4">
-              <PrivateRoute path="/dashboard" component={DashboardPage} />
-              <ProtectedRoute path="/emails" component={EmailsPage} />
-              <ProtectedRoute path="/groups" component={GroupsPage} />
-              <ProtectedRoute path="/files" component={FilesPage} />
+              <PrivateRoute
+                path="/dashboard"
+                render={props => (
+                  <DashboardPage {...props} setHasSmtp={setHasSmtp} />
+                )}
+              />
+                  <ProtectedRoute path="/emails" component={EmailsPage} />
+                  <ProtectedRoute path="/groups" component={GroupsPage} />
+                  <ProtectedRoute path="/files" component={FilesPage} />
               <PrivateRoute
                 path="/settings"
                 render={(props) => (

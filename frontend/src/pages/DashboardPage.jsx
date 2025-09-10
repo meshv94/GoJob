@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Spinner, Button, Form, Alert } from 'react-bootstrap';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom';
 import { FaEnvelopeOpenText, FaEnvelope, FaRegClock, FaUsers, FaKey, FaSave } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 // import './DashboardPage.css'; // external custom CSS
 
-function DashboardPage() {
+function DashboardPage({ setHasSmtp }) {
   const [stats, setStats] = useState(null);
   const [smtpData, setSmtpData] = useState({
     smtpUser: '',
@@ -17,9 +16,6 @@ function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [user, setUser] = useState(null);
-
-
-  const history = useHistory();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -61,8 +57,9 @@ function DashboardPage() {
   useEffect(() => {
     if (user) {
       setSmtpData(f => ({ ...f, smtpUser: user.email }));
+      setHasSmtp(user.hasSMTP);
     }
-  }, [user]);
+  }, [user, setHasSmtp]);
 
   const handleChange = (e) => {
     setSmtpData({ ...smtpData, [e.target.name]: e.target.value });
@@ -163,7 +160,7 @@ function DashboardPage() {
 
       {/* SMTP Setup Section */}
       {
-        !user.hasSMTP && (
+        user && !user.hasSMTP && (
           <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}

@@ -184,6 +184,9 @@ export const emailSchemas = {
     scheduledAt: Joi.date().iso().required().messages({
       'date.base': 'Invalid date format',
       'any.required': 'Scheduled date is required'
+    }),
+    timeZone: Joi.string().optional().messages({
+      'string.base': 'Time zone must be a string'
     })
   })
 };

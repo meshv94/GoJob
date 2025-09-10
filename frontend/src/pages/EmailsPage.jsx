@@ -4,6 +4,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/emails';
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 function EmailsPage() {
   const [emails, setEmails] = useState([]);
@@ -124,22 +125,22 @@ function EmailsPage() {
   }, []);
 
   // Send email
-  const handleSend = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const htmlContent = generateStyledHtml(form.content);
-      await axios.post(API_URL, { ...form, content: htmlContent, attachments: selectedAttachments });
-      toast.success('Email sent!');
-      setShowSendModal(false);
-      setForm({ ...form, attachments: [] });
-      setSelectedAttachments([]);
-      fetchEmails();
-    } catch (err) {
-      toast.error('Failed to send email');
-    }
-    setLoading(false);
-  };
+  // const handleSend = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   try {
+  //     const htmlContent = generateStyledHtml(form.content);
+  //     await axios.post(API_URL, { ...form, content: htmlContent, attachments: selectedAttachments });
+  //     toast.success('Email sent!');
+  //     setShowSendModal(false);
+  //     setForm({ ...form, attachments: [] });
+  //     setSelectedAttachments([]);
+  //     fetchEmails();
+  //   } catch (err) {
+  //     toast.error('Failed to send email');
+  //   }
+  //   setLoading(false);
+  // };
 
   // Handle input changes for dynamic fields
   const handleToChange = (idx, value) => {
@@ -238,6 +239,7 @@ function EmailsPage() {
     try {
       await axios.post(`${API_URL}/${id}/send`);
       toast.success('Draft sent!');
+      handleCloseModal(); // <-- Close the send modal here
       setShowDetailModal(false); // <-- Close the details modal here
       handleFetchEmailsBasedOnTab(tab); // <-- Refresh based on current tab
       setForm({
@@ -842,23 +844,25 @@ function EmailsPage() {
         <Modal.Footer className="border-0 bg-light">
           { selectedEmail && selectedEmail.status !== 'sent' &&
             <>
-              <Button
-                variant="success"
-                className="rounded-pill px-4 me-2 shadow-sm"
-                onClick={() => handleSendDraft(selectedEmail._id)}
-              >
-                Send
-              </Button>
-              <Button
-                variant="secondary"
-                className="rounded-pill px-4 me-2 shadow-sm"
-                onClick={() => {
-                  setScheduleEmailId(selectedEmail._id);
-                  setShowScheduleModal(true);
-                }}
-              >
-                Schedule
-              </Button>
+                <Button
+                  variant="success"
+                  className="rounded-pill px-4 me-2 shadow-sm"
+                  onClick={() => handleSendDraft(selectedEmail._id)}
+                >
+                  Send
+                </Button>
+              { selectedEmail.status !== 'scheduled' && 
+                <Button
+                  variant="secondary"
+                  className="rounded-pill px-4 me-2 shadow-sm"
+                  onClick={() => {
+                    setScheduleEmailId(selectedEmail._id);
+                    setShowScheduleModal(true);
+                  }}
+                >
+                  Schedule
+                </Button>
+              }
             </>
           }
           <Button
@@ -886,7 +890,7 @@ function EmailsPage() {
             setScheduling(true);
             setLoading(true);
             try {
-              await axios.post(`${API_URL}/${scheduleEmailId}/schedule`, { scheduledAt });
+              await axios.post(`${API_URL}/${scheduleEmailId}/schedule`, { scheduledAt, timeZone });
               toast.success('Email scheduled!');
               setShowScheduleModal(false);
               setScheduledAt('');

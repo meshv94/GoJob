@@ -8,6 +8,7 @@ import User from '../models/User.js';
 import emailQueue from '../jobs/emailQueue.js';
 import File from '../models/File.js'; // Add this import
 import path from 'path';
+import moment from 'moment-timezone';
 
 const router = express.Router();
 
@@ -285,7 +286,10 @@ router.post('/:id/schedule', auth, validateEmail.schedule, async (req, res) => {
   try {
     console.log("Scheduling email...");
     // Validation is now handled by middleware
-    const { scheduledAt } = req.body;
+    const { scheduledAt, timeZone } = req.body;
+    // Convert client local time + timezone to UTC Date
+    // const scheduledAtUTC = moment.tz(scheduledAt, 'YYYY-MM-DDTHH:mm', timeZone).utc().toDate();
+    // console.log("Converted UTC time:", scheduledAtUTC);
     console.log("Scheduling email...", scheduledAt);
     
     const email = await Email.findOne({ 
@@ -300,7 +304,7 @@ router.post('/:id/schedule', auth, validateEmail.schedule, async (req, res) => {
     }
     
     email.status = 'scheduled';
-    email.scheduledAt = new Date(scheduledAt);
+    email.scheduledAt = scheduledAt;
     await email.save();
 
     // Add job to Bull queue

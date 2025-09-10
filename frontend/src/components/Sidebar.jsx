@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaTachometerAlt, FaEnvelope, FaUsers, FaFileAlt, FaCogs, FaSignOutAlt, FaLayerGroup } from 'react-icons/fa';
+import { FaTachometerAlt, FaEnvelope, FaUsers, FaFileAlt, FaCogs, FaSignOutAlt } from 'react-icons/fa';
 
 const Sidebar = ({ onLogout, darkMode, setDarkMode }) => {
   const location = useLocation();
