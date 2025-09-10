@@ -893,6 +893,7 @@ function EmailsPage() {
               await axios.post(`${API_URL}/${scheduleEmailId}/schedule`, { scheduledAt, timeZone });
               toast.success('Email scheduled!');
               setShowScheduleModal(false);
+              setShowDetailModal(false);
               setScheduledAt('');
               setScheduleEmailId(null);
               handleFetchEmailsBasedOnTab(tab);

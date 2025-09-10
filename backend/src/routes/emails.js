@@ -286,11 +286,28 @@ router.post('/:id/schedule', auth, validateEmail.schedule, async (req, res) => {
   try {
     console.log("Scheduling email...");
     // Validation is now handled by middleware
-    const { scheduledAt, timeZone } = req.body;
-    // Convert client local time + timezone to UTC Date
-    // const scheduledAtUTC = moment.tz(scheduledAt, 'YYYY-MM-DDTHH:mm', timeZone).utc().toDate();
-    // console.log("Converted UTC time:", scheduledAtUTC);
-    console.log("Scheduling email...", scheduledAt);
+    let { scheduledAt, timeZone } = req.body;
+    if (timeZone === 'Asia/Calcutta') {
+      timeZone = 'Asia/Kolkata'; // Correct timezone identifier
+    }
+
+    // Remove trailing Z if present
+    if (typeof scheduledAt === 'string' && scheduledAt.endsWith('Z')) {
+      scheduledAt = scheduledAt.replace('Z', '');
+    }
+
+    if (scheduledAt instanceof Date) {
+      // Convert Date object to string in 'YYYY-MM-DDTHH:mm:ss' format
+      scheduledAt = moment(scheduledAt).format('YYYY-MM-DDTHH:mm:ss');
+      // Now use the format string for moment.tz
+      var format = 'YYYY-MM-DDTHH:mm:ss';
+    } else {
+      // Use your existing logic to determine format
+      var format = scheduledAt.length === 19 ? 'YYYY-MM-DDTHH:mm:ss' : 'YYYY-MM-DDTHH:mm';
+    }
+    const scheduledAtUTC = moment.tz(scheduledAt, format, timeZone).utc().toDate();
+    console.log("Converted UTC time:", scheduledAtUTC);
+    console.log("Scheduling email...", typeof scheduledAt, scheduledAt);
     
     const email = await Email.findOne({ 
       _id: req.params.id, 
@@ -304,11 +321,11 @@ router.post('/:id/schedule', auth, validateEmail.schedule, async (req, res) => {
     }
     
     email.status = 'scheduled';
-    email.scheduledAt = scheduledAt;
+    email.scheduledAt = scheduledAtUTC;
     await email.save();
 
     // Add job to Bull queue
-    const delay = new Date(scheduledAt) - Date.now();
+    const delay = scheduledAtUTC - Date.now();
     console.log("Scheduling email with delay:", delay);
     if (delay > 0) {
       await emailQueue.add(
