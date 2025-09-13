@@ -87,7 +87,7 @@ function FilesPage() {
   };
 
   return (
-    <Container className="py-4">
+    <div className="py-4" id="my-container">
       <Card className="mb-4 shadow-lg border-0" style={{ borderRadius: 22 }}>
         <Card.Body>
           <h4 className="fw-bold mb-3">
@@ -199,7 +199,7 @@ function FilesPage() {
           </Button>
         </Modal.Footer>
       </Modal>
-    </Container>
+    </div>
   );
 }
 

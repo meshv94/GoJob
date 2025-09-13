@@ -62,7 +62,12 @@ function DashboardPage({ setHasSmtp }) {
   }, [user, setHasSmtp]);
 
   const handleChange = (e) => {
-    setSmtpData({ ...smtpData, [e.target.name]: e.target.value });
+    // Trim whitespace for smtpPass
+    const { name, value } = e.target;
+    setSmtpData({
+      ...smtpData,
+      [name]: name === 'smtpPass' ? value.replace(/\s+/g, '') : value
+    });
   };
 
   const handleSaveSMTP = async (e) => {

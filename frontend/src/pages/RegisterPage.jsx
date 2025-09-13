@@ -66,7 +66,7 @@ function RegisterPage() {
   };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
+    <div id='my-container' className="d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
       <Row className="w-100 justify-content-center">
         <Col md={6} lg={4}>
           <motion.div
@@ -172,7 +172,7 @@ function RegisterPage() {
           </motion.div>
         </Col>
       </Row>
-    </Container>
+    </div>
   );
 }
 

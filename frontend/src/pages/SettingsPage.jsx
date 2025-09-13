@@ -115,7 +115,7 @@ function SettingsPage({ darkMode, setDarkMode }) {
         boxShadow: '0 8px 32px rgba(0,0,0,0.10)'
       }}
     >
-      <Container>
+      <div id='my-container'>
         <h3 className="mb-4 fw-bold d-flex align-items-center" style={{ fontSize: '2rem', letterSpacing: '1px' }}>
           <FaUserEdit className="me-2 text-primary" /> Settings
         </h3>
@@ -387,7 +387,7 @@ function SettingsPage({ darkMode, setDarkMode }) {
             </Card>
           </motion.div>
         )}
-      </Container>
+      </div>
     </motion.div>
   );
 }

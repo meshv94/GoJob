@@ -62,4 +62,6 @@ body.bg-dark {
   opacity: 0.9;
   transform: translateY(-2px);
 }
-
+/* #my-container{
+  max-width: 1000px !important;
+} */
