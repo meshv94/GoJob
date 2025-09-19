@@ -36,7 +36,7 @@ services:
     env: docker
     plan: free
     dockerfilePath: ""
-    image: mongo:6
+    externalImage: mongo:6
     autoDeploy: true
 
   - type: pserv
@@ -44,5 +44,5 @@ services:
     env: docker
     plan: free
     dockerfilePath: ""
-    image: redis:7
+    externalImage: redis:7
     autoDeploy: true
