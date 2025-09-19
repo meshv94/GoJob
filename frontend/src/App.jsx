@@ -32,7 +32,7 @@ function App() {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-        const data = await axios.get('http://localhost:5000/auth/profile');
+        const data = await axios.get('http://192.168.1.6:5000/auth/profile');
         setHasSmtp(data.data.user.hasSMTP);
       } catch (error) {
         if(error.response && error.response.status === 401) {

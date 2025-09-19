@@ -3,7 +3,7 @@ import { Table, Button, Form, Spinner, Modal, Tabs, Tab, InputGroup } from 'reac
 import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/emails';
+const API_URL = 'http://192.168.1.6:5000/emails';
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 function EmailsPage() {
@@ -81,7 +81,7 @@ function EmailsPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/auth/profile');
+        const res = await axios.get('http://192.168.1.6:5000/auth/profile');
         setUser(res.data.user || res.data);
       } catch (err) {
         setUser(null);
@@ -100,7 +100,7 @@ function EmailsPage() {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/groups');
+        const res = await axios.get('http://192.168.1.6:5000/groups');
         setGroups(Array.isArray(res.data) ? res.data : res.data.groups || []);
       } catch (err) {
         setGroups([]);
@@ -113,7 +113,7 @@ function EmailsPage() {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/files', {
+        const res = await axios.get('http://192.168.1.6:5000/files', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setFiles(res.data.files || []);
@@ -820,7 +820,7 @@ function EmailsPage() {
                       return (
                         <a
                           key={id}
-                          href={`http://localhost:5000/uploads/${file.path}`}
+                          href={`http://192.168.1.6:5000/uploads/${file.path}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="badge bg-info text-dark me-2"

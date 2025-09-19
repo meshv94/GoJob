@@ -3,7 +3,7 @@ import { Table, Button, Form, Spinner, Modal } from 'react-bootstrap';
 import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/groups';
+const API_URL = 'http://192.168.1.6:5000/groups';
 
 function GroupsPage() {
   const [groups, setGroups] = useState([]);
