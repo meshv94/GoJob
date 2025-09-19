@@ -7,13 +7,12 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/gojob
+      - MONGO_URI=mongodb+srv://codewithmeshv:<db_password>@cluster0.c16pcg9.mongodb.net/
       - REDIS_URL=redis://redis:6379
       # Add other env vars as needed
     volumes:
       - ./Uploads:/app/Uploads
     depends_on:
-      - mongo
       - redis
   frontend:
     build: ./frontend
@@ -23,13 +22,7 @@ services:
     depends_on:
       - backend
 
-  mongo:
-    image: mongo:6
-    container_name: gojob-mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
+
 
   redis:
     image: redis:7
