@@ -27,12 +27,14 @@ services:
     name: gojob-mongo
     env: image
     plan: free
-    image: mongo:6
+    image:
+      url: mongo:6
     autoDeploy: true
 
   - type: pserv
     name: gojob-redis
     env: image
     plan: free
-    image: redis:7
+    image:
+      url: redis:7
     autoDeploy: true
