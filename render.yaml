@@ -33,16 +33,14 @@ services:
 
   - type: pserv
     name: gojob-mongo
-    env: docker
+    env: image
     plan: free
-    dockerfilePath: ""
-    externalImage: mongo:6
+    image: mongo:6
     autoDeploy: true
 
   - type: pserv
     name: gojob-redis
-    env: docker
+    env: image
     plan: free
-    dockerfilePath: ""
-    externalImage: redis:7
+    image: redis:7
     autoDeploy: true
