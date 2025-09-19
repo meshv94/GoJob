@@ -5,7 +5,6 @@ services:
     plan: free
     dockerfilePath: ./frontend/Dockerfile
     buildCommand: npm install && npm run build
-    startCommand: nginx -g 'daemon off;'
     envVars:
       - key: NODE_ENV
         value: production
@@ -17,26 +16,17 @@ services:
     plan: free
     dockerfilePath: ./backend/Dockerfile
     buildCommand: npm install
-    startCommand: node index.js
     envVars:
       - key: MONGO_URI
-        fromService:
-          type: pserv
-          name: gojob-mongo
-          property: connectionString
+        value: mongodb://gojob-mongo:27017/gojob
       - key: REDIS_URL
-        fromService:
-          type: pserv
-          name: gojob-redis
-          property: connectionString
+        value: redis://gojob-redis:6379
     autoDeploy: true
 
   - type: pserv
     name: gojob-mongo
     env: docker
     plan: free
-    dockerCommand: ""
-    dockerContext: ""
     dockerfilePath: ""
     image:
       url: mongo:6
@@ -46,8 +36,6 @@ services:
     name: gojob-redis
     env: docker
     plan: free
-    dockerCommand: ""
-    dockerContext: ""
     dockerfilePath: ""
     image:
       url: redis:7
