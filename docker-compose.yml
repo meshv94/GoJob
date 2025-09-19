@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: gojob-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/gojob
+      - REDIS_URL=redis://redis:6379
+      # Add other env vars as needed
+    volumes:
+      - ./Uploads:/app/Uploads
+    depends_on:
+      - mongo
+      - redis
+  frontend:
+    build: ./frontend
+    container_name: gojob-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  mongo:
+    image: mongo:6
+    container_name: gojob-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:7
+    container_name: gojob-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  mongo-data:
