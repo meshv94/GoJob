@@ -4,7 +4,7 @@ import { Container, Card, Button, Table, Spinner, Alert, Modal, Badge } from "re
 import { useDropzone } from "react-dropzone";
 import { FiUpload, FiTrash2, FiFile, FiImage, FiFileText } from "react-icons/fi";
 
-const API_URL = "http://192.168.1.6:5000/files";
+const API_URL = "http://localhost:5000/files";
 
 function FilesPage() {
   const [files, setFiles] = useState([]);
@@ -161,7 +161,7 @@ function FilesPage() {
                           className="rounded-pill ms-2 shadow-sm"
                           href={
                             file.path
-                              ? `http://192.168.1.6:5000/uploads/${file.path}`
+                              ? `http://localhost:5000/uploads/${file.path}`
                               : "#"
                           }
                           target="_blank"

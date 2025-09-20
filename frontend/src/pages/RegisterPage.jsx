@@ -55,7 +55,7 @@ function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      await axios.post('http://192.168.1.6:5000/auth/send-otp', { email: form.email });
+      await axios.post('http://localhost:5000/auth/send-otp', { email: form.email });
       // await sendOtp(form.email);
       setOtpTimer(600); // Reset timer
       setCanResend(false);

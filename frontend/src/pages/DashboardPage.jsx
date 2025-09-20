@@ -21,10 +21,10 @@ function DashboardPage({ setHasSmtp }) {
     const fetchStats = async () => {
       try {
         const [sent, drafts, scheduled, groups] = await Promise.all([
-          axios.get('http://192.168.1.6:5000/emails?status=sent'),
-          axios.get('http://192.168.1.6:5000/emails?status=draft'),
-          axios.get('http://192.168.1.6:5000/emails?status=scheduled'),
-          axios.get('http://192.168.1.6:5000/groups'),
+          axios.get('http://localhost:5000/emails?status=sent'),
+          axios.get('http://localhost:5000/emails?status=draft'),
+          axios.get('http://localhost:5000/emails?status=scheduled'),
+          axios.get('http://localhost:5000/groups'),
         ]);
         setStats({
           sent: Array.isArray(sent.data.emails) ? sent.data.emails.length : 0,
@@ -45,7 +45,7 @@ function DashboardPage({ setHasSmtp }) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('http://192.168.1.6:5000/auth/profile');
+        const res = await axios.get('http://localhost:5000/auth/profile');
         setUser(res.data.user || res.data);
       } catch (err) {
         setUser(null);
@@ -77,7 +77,7 @@ function DashboardPage({ setHasSmtp }) {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://192.168.1.6:5000/auth/smtp', smtpData, {
+      const res = await axios.post('http://localhost:5000/auth/smtp', smtpData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

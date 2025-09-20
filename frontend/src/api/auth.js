@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.6:5000/auth';
+const API_URL = 'http://localhost:5000/auth';
 
 // Set up Axios interceptor to add token to headers
 axios.interceptors.request.use(
