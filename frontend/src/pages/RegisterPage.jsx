@@ -55,7 +55,7 @@ function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      await axios.post('http://localhost:5000/auth/send-otp', { email: form.email });
+      await axios.post('https://gojob-backend-p7y0.onrender.com/auth/send-otp', { email: form.email });
       // await sendOtp(form.email);
       setOtpTimer(600); // Reset timer
       setCanResend(false);

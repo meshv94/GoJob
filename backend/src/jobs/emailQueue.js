@@ -5,8 +5,17 @@ import User from '../models/User.js';
 import File from '../models/File.js';
 import path from 'path';
 
+// const emailQueue = new Queue('scheduled-emails', {
+//   redis: { host: 'redis', port: 6379 }
+// });
+
 const emailQueue = new Queue('scheduled-emails', {
-  redis: { host: 'redis', port: 6379 }
+  redis: {
+    port: 6379,
+    host: 'beloved-honeybee-7522.upstash.io',
+    password: 'AR1iAAImcDJmZmJiYmNhNDE5MGY0ZjQwOGY1MDEzMWVjYmZhZDk4YnAyNzUyMg',
+    tls: {} // important for Upstash (TLS/SSL)
+  }
 });
 
 emailQueue.process(async (job) => {

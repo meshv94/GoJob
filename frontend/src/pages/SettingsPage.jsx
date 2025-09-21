@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserCircle, FaMoon, FaSun, FaEnvelope, FaCheckCircle, FaExclamationCircle, FaUserEdit, FaKey, FaSave } from 'react-icons/fa';
 import { EyeFill, EyeSlashFill } from "react-bootstrap-icons";
 
-const API_URL = 'http://localhost:5000/auth';
+const API_URL = 'https://gojob-backend-p7y0.onrender.com/auth';
 
 function getInitials(name, email) {
   if (name) return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -85,7 +85,7 @@ function SettingsPage({ darkMode, setDarkMode }) {
     setMessage(null);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.put('http://localhost:5000/auth/smtp', smtpData, {
+      const res = await axios.put('https://gojob-backend-p7y0.onrender.com/auth/smtp', smtpData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessage({ type: 'success', text: res.data.message });

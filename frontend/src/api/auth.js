@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/auth';
+const API_URL = 'https://gojob-backend-p7y0.onrender.com/auth';
 
 // Set up Axios interceptor to add token to headers
 axios.interceptors.request.use(
