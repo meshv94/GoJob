@@ -14,7 +14,8 @@ import { CircleLoader } from 'react-spinners';
 import FilesPage from "./pages/FilesPage";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-console.log("API Base URL:", import.meta.env.VITE_API_BASE_URL);
+console.log("API Base URL 1:", import.meta.env.VITE_API_BASE_URL);
+console.log("API Base URL 2:", API_BASE_URL);
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
