@@ -7,8 +7,6 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - MONGO_URI=mongodb+srv://codewithmeshv:Abc%401234@cluster0.c16pcg9.mongodb.net/gojob?retryWrites=true&w=majority&appName=Cluster0
-      - REDIS_URL=redis://redis:6379
       # Add other env vars as needed
     volumes:
       - ./Uploads:/app/Uploads
