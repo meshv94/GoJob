@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Form, Spinner, Modal, Tabs, Tab, InputGroup } from 'react-bootstrap';
 import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const API_URL = 'https://gojob-backend-p7y0.onrender.com/emails';
+const API_URL = `${API_BASE_URL}/emails`;
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 function EmailsPage() {
@@ -81,7 +82,7 @@ function EmailsPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('https://gojob-backend-p7y0.onrender.com/auth/profile');
+        const res = await axios.get(`${API_BASE_URL}/auth/profile`);
         setUser(res.data.user || res.data);
       } catch (err) {
         setUser(null);
@@ -100,7 +101,7 @@ function EmailsPage() {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const res = await axios.get('https://gojob-backend-p7y0.onrender.com/groups');
+        const res = await axios.get(`${API_BASE_URL}/groups`);
         setGroups(Array.isArray(res.data) ? res.data : res.data.groups || []);
       } catch (err) {
         setGroups([]);
@@ -113,7 +114,7 @@ function EmailsPage() {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const res = await axios.get('https://gojob-backend-p7y0.onrender.com/files', {
+        const res = await axios.get(`${API_BASE_URL}/files`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setFiles(res.data.files || []);
@@ -820,7 +821,7 @@ function EmailsPage() {
                       return (
                         <a
                           key={id}
-                          href={`https://gojob-backend-p7y0.onrender.com/uploads/${file.path}`}
+                          href={`${API_BASE_URL}/uploads/${file.path}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="badge bg-info text-dark me-2"

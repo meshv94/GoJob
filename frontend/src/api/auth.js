@@ -1,6 +1,7 @@
 import axios from 'axios';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const API_URL = 'https://gojob-backend-p7y0.onrender.com/auth';
+const API_URL = `${API_BASE_URL}/auth`;
 
 // Set up Axios interceptor to add token to headers
 axios.interceptors.request.use(

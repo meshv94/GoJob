@@ -3,7 +3,7 @@ import { Card, Row, Col, Spinner, Button, Form, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import { FaEnvelopeOpenText, FaEnvelope, FaRegClock, FaUsers, FaKey, FaSave } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-// import './DashboardPage.css'; // external custom CSS
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function DashboardPage({ setHasSmtp }) {
   const [stats, setStats] = useState(null);
@@ -21,10 +21,10 @@ function DashboardPage({ setHasSmtp }) {
     const fetchStats = async () => {
       try {
         const [sent, drafts, scheduled, groups] = await Promise.all([
-          axios.get('https://gojob-backend-p7y0.onrender.com/emails?status=sent'),
-          axios.get('https://gojob-backend-p7y0.onrender.com/emails?status=draft'),
-          axios.get('https://gojob-backend-p7y0.onrender.com/emails?status=scheduled'),
-          axios.get('https://gojob-backend-p7y0.onrender.com/groups'),
+          axios.get(`${API_BASE_URL}/emails?status=sent`),
+          axios.get(`${API_BASE_URL}/emails?status=draft`),
+          axios.get(`${API_BASE_URL}/emails?status=scheduled`),
+          axios.get(`${API_BASE_URL}/groups`),
         ]);
         setStats({
           sent: Array.isArray(sent.data.emails) ? sent.data.emails.length : 0,
@@ -45,7 +45,7 @@ function DashboardPage({ setHasSmtp }) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('https://gojob-backend-p7y0.onrender.com/auth/profile');
+        const res = await axios.get(`${API_BASE_URL}/auth/profile`);
         setUser(res.data.user || res.data);
       } catch (err) {
         setUser(null);
@@ -77,7 +77,7 @@ function DashboardPage({ setHasSmtp }) {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('https://gojob-backend-p7y0.onrender.com/auth/smtp', smtpData, {
+      const res = await axios.post(`${API_BASE_URL}/auth/smtp`, smtpData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

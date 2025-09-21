@@ -12,6 +12,8 @@ import { Modal, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { CircleLoader } from 'react-spinners';
 import FilesPage from "./pages/FilesPage";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -32,7 +34,7 @@ function App() {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-        const data = await axios.get('https://gojob-backend-p7y0.onrender.com/auth/profile');
+        const data = await axios.get(`${API_BASE_URL}/auth/profile`);
         setHasSmtp(data.data.user.hasSMTP);
       } catch (error) {
         if(error.response && error.response.status === 401) {

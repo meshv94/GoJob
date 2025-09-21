@@ -3,8 +3,8 @@ import axios from "axios";
 import { Container, Card, Button, Table, Spinner, Alert, Modal, Badge } from "react-bootstrap";
 import { useDropzone } from "react-dropzone";
 import { FiUpload, FiTrash2, FiFile, FiImage, FiFileText } from "react-icons/fi";
-
-const API_URL = "https://gojob-backend-p7y0.onrender.com/files";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_URL = `${API_BASE_URL}/files`;
 
 function FilesPage() {
   const [files, setFiles] = useState([]);
@@ -161,7 +161,7 @@ function FilesPage() {
                           className="rounded-pill ms-2 shadow-sm"
                           href={
                             file.path
-                              ? `https://gojob-backend-p7y0.onrender.com/uploads/${file.path}`
+                              ? `${API_BASE_URL}/uploads/${file.path}`
                               : "#"
                           }
                           target="_blank"
