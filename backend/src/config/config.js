@@ -6,6 +6,7 @@ export const config = {
   // Server Configuration
   port: process.env.PORT || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
+  serverUrl: process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`,
   
   // MongoDB Configuration
   mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/gojob',

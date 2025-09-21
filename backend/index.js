@@ -91,8 +91,8 @@ app.use((error, req, res, next) => {
 app.listen(config.port, () => {
   console.log(`🚀 GoJob Email Sender Server running on port ${config.port}`);
   console.log(`📧 Environment: ${config.nodeEnv}`);
-  console.log(`🔗 Health check: http://localhost:${config.port}/health`);
-  console.log(`📚 API docs: http://localhost:${config.port}/api/v1`);
+  console.log(`🔗 Health check: ${config.serverUrl}/health`);
+  console.log(`📚 API docs: ${config.serverUrl}/api/v1`);
   console.log(`📊 MongoDB: ${config.mongoUri}`);
   console.log(`📧 SMTP: ${config.smtp.host}:${config.smtp.port}`);
   console.log("📂 Serving uploads from:", path.join(__dirname, 'Uploads'));
